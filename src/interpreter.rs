@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{AwaSCII, Awatism};
+use crate::{Awatism, AWA_SCII};
 
 #[derive(Debug)]
 struct Instruction {
@@ -79,8 +79,43 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 let bubble = bubble_abyss.top().unwrap().clone();
                 print_bubble(&mut bubble_abyss, &bubble, true);
             }
-            Awatism::Red => {}
-            Awatism::R3d => {}
+            Awatism::Red => {
+                let mut buffer = String::new();
+                let _ = std::io::stdin().read_line(&mut buffer);
+
+                let mut bubbles = Vec::new();
+                for c in buffer.chars() {
+                    if !AWA_SCII.contains(c) {
+                        break;
+                    }
+                    bubbles.insert(
+                        0,
+                        Bubble::Simple(AWA_SCII.chars().position(|f| f == c).unwrap() as i32),
+                    );
+                }
+
+                bubble_abyss.push(Bubble::Double(bubbles));
+            }
+            Awatism::R3d => {
+                let mut buffer = String::new();
+                let _ = std::io::stdin().read_line(&mut buffer);
+
+                let mut negative = 1;
+
+                let mut num = String::new();
+                for (i, c) in buffer.chars().enumerate() {
+                    if i == 0 && c == '-' {
+                        negative = -1;
+                        continue;
+                    }
+                    if !c.is_ascii_digit() {
+                        break;
+                    }
+                    num += &c.to_string();
+                }
+
+                bubble_abyss.push(Bubble::Simple(negative * num.parse::<i32>().unwrap()));
+            }
             Awatism::Blo(arg) => {
                 bubble_abyss.push(Bubble::Simple(arg as i32));
                 // println!("op {} arg {}", op, arg);
@@ -100,8 +135,8 @@ pub fn interpet_object(object_vec: Vec<u8>) {
             Awatism::Mul => {}
             Awatism::Div => {}
             Awatism::Cnt => {}
-            Awatism::Lbl(arg) => {}
-            Awatism::Jmp(arg) => {}
+            Awatism::Lbl(_arg) => {}
+            Awatism::Jmp(_arg) => {}
             Awatism::Eql => {}
             Awatism::Lss => {}
             Awatism::Gr8 => {}
@@ -118,8 +153,8 @@ fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool) {
         Bubble::Simple(val) => {
             if number {
                 print!("{} ", val);
-            } else if *val >= 0 && (*val as usize) < AwaSCII.len() {
-                print!("{}", AwaSCII.chars().nth(*val as usize).unwrap());
+            } else if *val >= 0 && (*val as usize) < AWA_SCII.len() {
+                print!("{}", AWA_SCII.chars().nth(*val as usize).unwrap());
             }
             bubble_abyss.pop();
         }

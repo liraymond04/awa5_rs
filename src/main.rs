@@ -95,7 +95,7 @@ pub struct Instruction {
     awatism: Awatism,
 }
 
-pub static AwaSCII: &str ="AWawJELYHOSIUMjelyhosiumPCNTpcntBDFGRbdfgr0123456789 .,!'()~_/;\n"; 
+pub static AWA_SCII: &str ="AWawJELYHOSIUMjelyhosiumPCNTpcntBDFGRbdfgr0123456789 .,!'()~_/;\n"; 
 
 fn main() {
     let matches = Command::new("awa5_0")
@@ -124,7 +124,7 @@ fn main() {
 
                 // let label_map = parser::awa::resolve_labels(&instructions);
 
-                println!("Parsed commands: {:#?}", instructions);
+                // println!("Parsed commands: {:#?}", instructions);
                 // println!("Label map: {:#?}", label_map);
 
                 let object_vec = assembler::make_object_vec(&instructions);
