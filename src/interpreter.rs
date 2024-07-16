@@ -14,6 +14,29 @@ enum Bubble {
     Double(Vec<Bubble>),
 }
 
+impl Bubble {
+    pub fn is_double(&self) -> bool {
+        match self {
+            Bubble::Simple(_) => false,
+            Bubble::Double(_) => true,
+        }
+    }
+
+    pub fn get_bubbles(&self) -> &Vec<Bubble> {
+        match self {
+            Bubble::Double(bubbles) => bubbles,
+            _ => panic!("Expected bubble to be double bubble"),
+        }
+    }
+
+    pub fn get_val(&self) -> i32 {
+        match self {
+            Bubble::Simple(val) => *val,
+            _ => panic!("Expected bubble to be single bubble"),
+        }
+    }
+}
+
 #[derive(Debug)]
 struct BubbleAbyss {
     bubbles: Vec<Bubble>,
@@ -130,9 +153,7 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                     _ => {}
                 }
             }
-            Awatism::Dpl => {
-                bubble_abyss.push(bubble_abyss.top().unwrap().clone())
-            }
+            Awatism::Dpl => bubble_abyss.push(bubble_abyss.top().unwrap().clone()),
             Awatism::Srn(arg) => {
                 let mut bubbles = Vec::new();
                 for _ in 0..arg {
@@ -140,11 +161,59 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 }
                 bubble_abyss.push(Bubble::Double(bubbles))
             }
-            Awatism::Mrg => {}
-            Awatism::Add => {}
-            Awatism::Sub => {}
-            Awatism::Mul => {}
-            Awatism::Div => {}
+            Awatism::Mrg => {
+                let bubble1 = bubble_abyss.pop().unwrap();
+                let bubble2 = bubble_abyss.pop().unwrap();
+
+                let is_b1_double = bubble1.is_double();
+                let is_b2_double = bubble2.is_double();
+
+                if !is_b1_double && !is_b2_double {
+                    let mut vec = Vec::new();
+                    vec.push(bubble2);
+                    vec.push(bubble1);
+                    bubble_abyss.push(Bubble::Double(vec));
+                } else if is_b1_double && !is_b2_double {
+                    let mut bubbles = bubble1.get_bubbles().clone();
+                    bubbles.insert(0, bubble2);
+                    bubble_abyss.push(Bubble::Double(bubbles));
+                } else if !is_b1_double && is_b2_double {
+                    let mut bubbles = bubble2.get_bubbles().clone();
+                    bubbles.insert(0, bubble1);
+                    bubble_abyss.push(Bubble::Double(bubbles));
+                } else {
+                    let mut bubbles1 = bubble1.get_bubbles().clone();
+                    let mut bubbles2 = bubble2.get_bubbles().clone();
+                    while bubbles1.len() > 0 {
+                        bubbles2.push(bubbles1.remove(0));
+                    }
+                    bubble_abyss.push(Bubble::Double(bubbles2));
+                }
+            }
+            Awatism::Add => {
+                let bubble1 = bubble_abyss.pop().unwrap();
+                let bubble2 = bubble_abyss.pop().unwrap();
+                let result = operate_bubbles(&add_bubbles, &bubble1, &bubble2);
+                bubble_abyss.push(result);
+            }
+            Awatism::Sub => {
+                let bubble1 = bubble_abyss.pop().unwrap();
+                let bubble2 = bubble_abyss.pop().unwrap();
+                let result = operate_bubbles(&sub_bubbles, &bubble1, &bubble2);
+                bubble_abyss.push(result);
+            }
+            Awatism::Mul => {
+                let bubble1 = bubble_abyss.pop().unwrap();
+                let bubble2 = bubble_abyss.pop().unwrap();
+                let result = operate_bubbles(&mul_bubbles, &bubble1, &bubble2);
+                bubble_abyss.push(result);
+            }
+            Awatism::Div => {
+                let bubble1 = bubble_abyss.pop().unwrap();
+                let bubble2 = bubble_abyss.pop().unwrap();
+                let result = operate_bubbles(&div_bubbles, &bubble1, &bubble2);
+                bubble_abyss.push(result);
+            }
             Awatism::Cnt => {}
             Awatism::Lbl(_arg) => {}
             Awatism::Jmp(_arg) => {}
@@ -176,5 +245,71 @@ fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool) {
             }
             bubble_abyss.pop();
         }
+    }
+}
+
+fn add_bubbles(bubble1: &Bubble, bubble2: &Bubble) -> Bubble {
+    Bubble::Simple(bubble1.get_val() + bubble2.get_val())
+}
+
+fn sub_bubbles(bubble1: &Bubble, bubble2: &Bubble) -> Bubble {
+    Bubble::Simple(bubble1.get_val() - bubble2.get_val())
+}
+
+fn mul_bubbles(bubble1: &Bubble, bubble2: &Bubble) -> Bubble {
+    Bubble::Simple(bubble1.get_val() * bubble2.get_val())
+}
+
+fn div_bubbles(bubble1: &Bubble, bubble2: &Bubble) -> Bubble {
+    let mut bubbles = Vec::new();
+    let val1 = bubble1.get_val();
+    let val2 = bubble2.get_val();
+    bubbles.push(Bubble::Simple(val1 % val2)); // remainder
+    let result = val1 as f32 / val2 as f32;
+    let result = if result < 0.0 {
+        // rounded dividend
+        result.ceil() as i32
+    } else {
+        result.floor() as i32
+    };
+    bubbles.push(Bubble::Simple(result));
+    Bubble::Double(bubbles)
+}
+
+fn operate_bubbles(
+    operation: &dyn Fn(&Bubble, &Bubble) -> Bubble,
+    bubble1: &Bubble,
+    bubble2: &Bubble,
+) -> Bubble {
+    let is_b1_double = bubble1.is_double();
+    let is_b2_double = bubble2.is_double();
+
+    if !is_b1_double && !is_b2_double {
+        return operation(bubble1, bubble2);
+    } else if is_b1_double && !is_b2_double {
+        let mut bubbles = Vec::new();
+        for b in bubble1.get_bubbles() {
+            bubbles.push(operate_bubbles(operation, b, bubble2));
+        }
+        return Bubble::Double(bubbles);
+    } else if !is_b1_double && is_b2_double {
+        let mut bubbles = Vec::new();
+        for b in bubble2.get_bubbles() {
+            bubbles.push(operate_bubbles(operation, bubble1, b));
+        }
+        return Bubble::Double(bubbles);
+    } else {
+        let mut bubbles: Vec<Bubble> = Vec::new();
+        let bubbles1 = bubble1.get_bubbles();
+        let bubbles2 = bubble2.get_bubbles();
+        for i in 0..std::cmp::min(bubbles1.len(), bubbles2.len()) {
+            let result = operate_bubbles(
+                operation,
+                &bubbles1[bubbles1.len() - i - 1],
+                &bubbles2[bubbles2.len() - i - 1],
+            );
+            bubbles.insert(0, result);
+        }
+        return Bubble::Double(bubbles)
     }
 }
