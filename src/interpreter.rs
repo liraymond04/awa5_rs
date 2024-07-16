@@ -162,6 +162,7 @@ fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool) {
             for i in (0..bubbles.len()).rev() {
                 print_bubble(bubble_abyss, &bubbles[i], number);
             }
+            bubble_abyss.pop();
         }
     }
 }
