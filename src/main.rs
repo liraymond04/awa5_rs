@@ -95,6 +95,8 @@ pub struct Instruction {
     awatism: Awatism,
 }
 
+pub static AwaSCII: &str ="AWawJELYHOSIUMjelyhosiumPCNTpcntBDFGRbdfgr0123456789 .,!'()~_/;\n"; 
+
 fn main() {
     let matches = Command::new("awa5_0")
         .version("1.0")

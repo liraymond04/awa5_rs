@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Awatism;
+use crate::{AwaSCII, Awatism};
 
 #[derive(Debug)]
 struct Instruction {
@@ -8,7 +8,7 @@ struct Instruction {
     arg: u8,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum Bubble {
     Simple(i32),
     Double(Vec<Bubble>),
@@ -70,22 +70,63 @@ pub fn interpet_object(object_vec: Vec<u8>) {
         let arg = instruction.arg;
 
         match Awatism::from_u8(op, arg).unwrap() {
-            Awatism::Pr1 => {
-                let bubble = bubble_abyss.top().unwrap();
-                match bubble {
-                    Bubble::Simple(val) => {
-                        println!("{}", val);
-                    }
-                    Bubble::Double(bubbles) => {}
-                }
+            Awatism::Nop => {}
+            Awatism::Prn => {
+                let bubble = bubble_abyss.top().unwrap().clone();
+                print_bubble(&mut bubble_abyss, &bubble, false);
             }
+            Awatism::Pr1 => {
+                let bubble = bubble_abyss.top().unwrap().clone();
+                print_bubble(&mut bubble_abyss, &bubble, true);
+            }
+            Awatism::Red => {}
+            Awatism::R3d => {}
             Awatism::Blo(arg) => {
                 bubble_abyss.push(Bubble::Simple(arg as i32));
                 // println!("op {} arg {}", op, arg);
             }
+            Awatism::Pop => {}
+            Awatism::Dpl => {}
+            Awatism::Srn(arg) => {
+                let mut bubbles = Vec::new();
+                for _ in 0..arg {
+                    bubbles.insert(0, bubble_abyss.pop().unwrap().clone())
+                }
+                bubble_abyss.push(Bubble::Double(bubbles))
+            }
+            Awatism::Mrg => {}
+            Awatism::Add => {}
+            Awatism::Sub => {}
+            Awatism::Mul => {}
+            Awatism::Div => {}
+            Awatism::Cnt => {}
+            Awatism::Lbl(arg) => {}
+            Awatism::Jmp(arg) => {}
+            Awatism::Eql => {}
+            Awatism::Lss => {}
+            Awatism::Gr8 => {}
+            Awatism::Trm => {}
             _ => {}
         }
     }
 
-    println!("{:#?}", instructions);
+    // println!("{:#?}", instructions);
+}
+
+fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool) {
+    match bubble {
+        Bubble::Simple(val) => {
+            if number {
+                print!("{} ", val);
+            } else if *val >= 0 && (*val as usize) < AwaSCII.len() {
+                print!("{}", AwaSCII.chars().nth(*val as usize).unwrap());
+            }
+            bubble_abyss.pop();
+        }
+        Bubble::Double(bubbles) => {
+            for i in (0..bubbles.len()).rev() {
+                print_bubble(bubble_abyss, &bubbles[i], number);
+            }
+        }
+    }
 }
