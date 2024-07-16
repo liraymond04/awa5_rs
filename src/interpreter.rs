@@ -120,8 +120,19 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 bubble_abyss.push(Bubble::Simple(arg as i32));
                 // println!("op {} arg {}", op, arg);
             }
-            Awatism::Pop => {}
-            Awatism::Dpl => {}
+            Awatism::Pop => {
+                let bubble = bubble_abyss.pop().unwrap();
+                match bubble {
+                    Bubble::Double(mut bubbles) => {
+                        let removed = bubbles.remove(0);
+                        bubble_abyss.push(removed);
+                    }
+                    _ => {}
+                }
+            }
+            Awatism::Dpl => {
+                bubble_abyss.push(bubble_abyss.top().unwrap().clone())
+            }
             Awatism::Srn(arg) => {
                 let mut bubbles = Vec::new();
                 for _ in 0..arg {
@@ -143,6 +154,7 @@ pub fn interpet_object(object_vec: Vec<u8>) {
             Awatism::Trm => {}
             _ => {}
         }
+        // println!("{:#?}", bubble_abyss);
     }
 
     // println!("{:#?}", instructions);
