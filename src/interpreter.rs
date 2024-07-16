@@ -214,7 +214,15 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 let result = operate_bubbles(&div_bubbles, &bubble1, &bubble2);
                 bubble_abyss.push(result);
             }
-            Awatism::Cnt => {}
+            Awatism::Cnt => {
+                let bubble = bubble_abyss.top().unwrap();
+                match bubble {
+                    Bubble::Simple(_) => bubble_abyss.push(Bubble::Simple(0)),
+                    Bubble::Double(_) => {
+                        bubble_abyss.push(Bubble::Simple(bubble.get_bubbles().len() as i32))
+                    }
+                }
+            }
             Awatism::Lbl(_arg) => {}
             Awatism::Jmp(_arg) => {}
             Awatism::Eql => {}
@@ -310,6 +318,6 @@ fn operate_bubbles(
             );
             bubbles.insert(0, result);
         }
-        return Bubble::Double(bubbles)
+        return Bubble::Double(bubbles);
     }
 }
