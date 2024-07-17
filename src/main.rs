@@ -95,7 +95,7 @@ pub struct Instruction {
     awatism: Awatism,
 }
 
-pub static AWA_SCII: &str ="AWawJELYHOSIUMjelyhosiumPCNTpcntBDFGRbdfgr0123456789 .,!'()~_/;\n"; 
+pub static AWA_SCII: &str = "AWawJELYHOSIUMjelyhosiumPCNTpcntBDFGRbdfgr0123456789 .,!'()~_/;\n";
 
 fn main() {
     let matches = Command::new("awa5_0")
@@ -103,10 +103,10 @@ fn main() {
         .about("An AWA5.0 CLI tool")
         .arg(Arg::new("input").index(1).required(true).num_args(1))
         .arg(
-            Arg::new("output_object")
+            Arg::new("output")
                 .short('o')
                 .long("output")
-                .help("Output code compilation to machine code object file")
+                .help("Output to file with new format .awa .awatalk .o")
                 .num_args(1),
         )
         .get_matches();
@@ -124,10 +124,23 @@ fn main() {
 
                 let object_vec = assembler::make_object_vec(&instructions);
 
-                if matches.contains_id("output_object") {
-                    let output_file = matches.get_one::<String>("output_object").unwrap();
+                if matches.contains_id("output") {
+                    let output_file = matches.get_one::<String>("output").unwrap();
 
-                    let _ = write_object_file(output_file, object_vec);
+                    match Path::new(output_file)
+                        .extension()
+                        .and_then(|ext| ext.to_str())
+                        .unwrap()
+                    {
+                        "awa" => {
+                            let _ = fs::copy(input_file, output_file);
+                        }
+                        "awatalk" => {}
+                        "o" => {
+                            let _ = write_object_file(output_file, object_vec);
+                        }
+                        _ => {}
+                    }
                 } else {
                     interpet_object(object_vec);
                 }
@@ -139,17 +152,47 @@ fn main() {
 
                 let object_vec = assembler::make_object_vec(&instructions);
 
-                if matches.contains_id("output_object") {
-                    let output_file = matches.get_one::<String>("output_object").unwrap();
+                if matches.contains_id("output") {
+                    let output_file = matches.get_one::<String>("output").unwrap();
 
-                    let _ = write_object_file(output_file, object_vec);
+                    match Path::new(output_file)
+                        .extension()
+                        .and_then(|ext| ext.to_str())
+                        .unwrap()
+                    {
+                        "awa" => {}
+                        "awatalk" => {
+                            let _ = fs::copy(input_file, output_file);
+                        }
+                        "o" => {
+                            let _ = write_object_file(output_file, object_vec);
+                        }
+                        _ => {}
+                    }
                 } else {
                     interpet_object(object_vec);
                 }
             }
             "o" => match read_binary_file(input_file) {
                 Ok(binary_data) => {
-                    interpet_object(binary_data);
+                    if matches.contains_id("output") {
+                        let output_file = matches.get_one::<String>("output").unwrap();
+
+                        match Path::new(output_file)
+                            .extension()
+                            .and_then(|ext| ext.to_str())
+                            .unwrap()
+                        {
+                            "awa" => {}
+                            "awatalk" => {}
+                            "o" => {
+                                let _ = fs::copy(input_file, output_file);
+                            }
+                            _ => {}
+                        }
+                    } else {
+                        interpet_object(binary_data);
+                    }
                 }
                 Err(err) => {
                     eprintln!("Error reading file: {}", err);
