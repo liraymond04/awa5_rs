@@ -69,6 +69,7 @@ impl BubbleAbyss {
         }
     }
 
+    #[allow(dead_code)]
     pub fn is_empty(&self) -> bool {
         self.bubbles.is_empty()
     }
@@ -151,7 +152,6 @@ pub fn interpet_object(object_vec: Vec<u8>) {
             }
             Awatism::Blo(arg) => {
                 bubble_abyss.push(Bubble::Simple(arg as i32));
-                // println!("op {} arg {}", op, arg);
             }
             Awatism::Pop => {
                 let bubble = bubble_abyss.pop().unwrap();
@@ -347,10 +347,7 @@ pub fn interpet_object(object_vec: Vec<u8>) {
         }
 
         index += 1;
-        // println!("{:#?}", bubble_abyss);
     }
-
-    // println!("{:#?}", instructions);
 }
 
 fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool) {

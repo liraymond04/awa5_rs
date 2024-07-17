@@ -122,11 +122,6 @@ fn main() {
 
                 let instructions = parser::awa::parse_lines(lines);
 
-                // let label_map = parser::awa::resolve_labels(&instructions);
-
-                // println!("Parsed commands: {:#?}", instructions);
-                // println!("Label map: {:#?}", label_map);
-
                 let object_vec = assembler::make_object_vec(&instructions);
 
                 if matches.contains_id("output_object") {

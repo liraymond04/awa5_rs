@@ -1,6 +1,5 @@
 pub mod awa {
     use crate::{Awatism, Instruction};
-    use std::collections::HashMap;
 
     pub fn parse_lines(lines: impl Iterator<Item = String>) -> Vec<Instruction> {
         lines.filter_map(|line| parse_line(&line)).collect()
@@ -41,18 +40,6 @@ pub mod awa {
         };
 
         Some(Instruction { awatism })
-    }
-
-    pub fn resolve_labels(instructions: &[Instruction]) -> HashMap<u8, usize> {
-        let mut label_map = HashMap::new();
-
-        for (index, instruction) in instructions.iter().enumerate() {
-            if let Awatism::Lbl(tag) = instruction.awatism {
-                label_map.insert(tag, index);
-            }
-        }
-
-        label_map
     }
 }
 
