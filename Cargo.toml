@@ -2,6 +2,10 @@
 name = "awa5_rs"
 version = "0.1.0"
 edition = "2021"
+description = "An AWA5.0 CLI tool written in Rust (btw)"
+license = "GPL-3.0-or-later"
+license-file = "LICENSE"
+repository = "https://github.com/liraymond04/awa5_rs"
 
 [dependencies]
 clap = { version = "4.5.9", features = ["derive"] }
