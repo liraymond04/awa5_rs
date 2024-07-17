@@ -107,11 +107,11 @@ pub fn interpet_object(object_vec: Vec<u8>) {
             Awatism::Nop => {}
             Awatism::Prn => {
                 let bubble = bubble_abyss.top().unwrap().clone();
-                print_bubble(&mut bubble_abyss, &bubble, false);
+                print_bubble(&mut bubble_abyss, &bubble, false, false);
             }
             Awatism::Pr1 => {
                 let bubble = bubble_abyss.top().unwrap().clone();
-                print_bubble(&mut bubble_abyss, &bubble, true);
+                print_bubble(&mut bubble_abyss, &bubble, true, false);
             }
             Awatism::Red => {
                 let mut buffer = String::new();
@@ -345,7 +345,7 @@ pub fn interpet_object(object_vec: Vec<u8>) {
     }
 }
 
-fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool) {
+fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool, current_double: bool) {
     match bubble {
         Bubble::Simple(val) => {
             if number {
@@ -353,11 +353,13 @@ fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool) {
             } else if *val >= 0 && (*val as usize) < AWA_SCII.len() {
                 print!("{}", AWA_SCII.chars().nth(*val as usize).unwrap());
             }
-            bubble_abyss.pop();
+            if !current_double {
+                bubble_abyss.pop();
+            }
         }
         Bubble::Double(bubbles) => {
             for i in (0..bubbles.len()).rev() {
-                print_bubble(bubble_abyss, &bubbles[i], number);
+                print_bubble(bubble_abyss, &bubbles[i], number, true);
             }
             bubble_abyss.pop();
         }
