@@ -98,9 +98,9 @@ pub struct Instruction {
 pub static AWA_SCII: &str = "AWawJELYHOSIUMjelyhosiumPCNTpcntBDFGRbdfgr0123456789 .,!'()~_/;\n";
 
 fn main() {
-    let matches = Command::new("awa5_0")
+    let matches = Command::new("awa5_rs")
         .version("1.0")
-        .about("An AWA5.0 CLI tool")
+        .about("An AWA5.0 CLI tool written in Rust (btw)")
         .arg(Arg::new("input").index(1).required(true).num_args(1))
         .arg(
             Arg::new("output")

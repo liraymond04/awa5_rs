@@ -1,4 +1,4 @@
-# awa5.0
+# AWA5.RS
 
 An [AWA5.0](https://github.com/TempTempai/AWA5.0) CLI tool written in Rust (btw)
 

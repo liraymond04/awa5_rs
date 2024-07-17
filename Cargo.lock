@@ -52,7 +52,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "awa5_0"
+name = "awa5_rs"
 version = "0.1.0"
 dependencies = [
  "clap",
