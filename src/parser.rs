@@ -6,7 +6,8 @@ pub mod awasm {
     }
 
     pub fn parse_line(line: &str) -> Option<Instruction> {
-        let trimmed = line.trim();
+        let line_without_comments = line.split(';').next().unwrap_or("");
+        let trimmed = line_without_comments.trim();
         let tokens: Vec<&str> = trimmed.split_whitespace().collect();
 
         if tokens.is_empty() || trimmed.starts_with(';') {
