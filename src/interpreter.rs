@@ -96,8 +96,9 @@ pub fn interpet_object(object_vec: Vec<u8>) {
         }
     }
 
-    let mut iter = instructions.iter().enumerate();
-    while let Some((index, instruction)) = iter.next() {
+    let mut index = 0;
+    while index < instructions.len() {
+        let instruction = &instructions[index];
         let op = instruction.op;
         let arg = instruction.arg;
 
@@ -233,7 +234,10 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 }
             }
             Awatism::Lbl(_arg) => {}
-            Awatism::Jmp(_arg) => {}
+            Awatism::Jmp(arg) => {
+                let jump_position = label_map.get(&arg).unwrap();
+                index = *jump_position;
+            }
             Awatism::Eql => {
                 let top = bubble_abyss.top().unwrap();
                 let before_top = bubble_abyss.before_top().unwrap();
@@ -248,22 +252,22 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                     let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
                     match awatism {
                         Awatism::Lbl(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Blo(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Sbm(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Srn(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Jmp(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         _ => {
-                            iter.nth(1);
+                            index += 1;
                         }
                     }
                 }
@@ -282,22 +286,22 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                     let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
                     match awatism {
                         Awatism::Lbl(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Blo(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Sbm(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Srn(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Jmp(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         _ => {
-                            iter.nth(1);
+                            index += 1;
                         }
                     }
                 }
@@ -316,22 +320,22 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                     let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
                     match awatism {
                         Awatism::Lbl(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Blo(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Sbm(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Srn(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         Awatism::Jmp(_arg) => {
-                            iter.nth(2);
+                            index += 2;
                         }
                         _ => {
-                            iter.nth(1);
+                            index += 1;
                         }
                     }
                 }
@@ -341,6 +345,8 @@ pub fn interpet_object(object_vec: Vec<u8>) {
             }
             _ => {}
         }
+
+        index += 1;
         // println!("{:#?}", bubble_abyss);
     }
 
