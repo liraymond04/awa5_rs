@@ -62,7 +62,7 @@ impl Awatism {
             0x12 => Some(Awatism::Eql),
             0x13 => Some(Awatism::Lss),
             0x14 => Some(Awatism::Gr8),
-            0x15 => Some(Awatism::Trm),
+            0x1F => Some(Awatism::Trm),
             _ => None,
         }
     }

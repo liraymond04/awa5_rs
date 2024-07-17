@@ -61,6 +61,14 @@ impl BubbleAbyss {
         self.bubbles.last()
     }
 
+    pub fn before_top(&self) -> Option<&Bubble> {
+        if self.bubbles.len() >= 2 {
+            self.bubbles.get(self.bubbles.len() - 2)
+        } else {
+            None
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.bubbles.is_empty()
     }
@@ -88,7 +96,8 @@ pub fn interpet_object(object_vec: Vec<u8>) {
         }
     }
 
-    for instruction in &instructions {
+    let mut iter = instructions.iter().enumerate();
+    while let Some((index, instruction)) = iter.next() {
         let op = instruction.op;
         let arg = instruction.arg;
 
@@ -225,10 +234,111 @@ pub fn interpet_object(object_vec: Vec<u8>) {
             }
             Awatism::Lbl(_arg) => {}
             Awatism::Jmp(_arg) => {}
-            Awatism::Eql => {}
-            Awatism::Lss => {}
-            Awatism::Gr8 => {}
-            Awatism::Trm => {}
+            Awatism::Eql => {
+                let top = bubble_abyss.top().unwrap();
+                let before_top = bubble_abyss.before_top().unwrap();
+
+                if !top.is_double()
+                    && !before_top.is_double()
+                    && top.get_val() == before_top.get_val()
+                {
+                    // execute next line
+                } else {
+                    let next_command = &instructions[index + 1];
+                    let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
+                    match awatism {
+                        Awatism::Lbl(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Blo(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Sbm(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Srn(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Jmp(_arg) => {
+                            iter.nth(2);
+                        }
+                        _ => {
+                            iter.nth(1);
+                        }
+                    }
+                }
+            }
+            Awatism::Lss => {
+                let top = bubble_abyss.top().unwrap();
+                let before_top = bubble_abyss.before_top().unwrap();
+
+                if !top.is_double()
+                    && !before_top.is_double()
+                    && top.get_val() < before_top.get_val()
+                {
+                    // execute next line
+                } else {
+                    let next_command = &instructions[index + 1];
+                    let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
+                    match awatism {
+                        Awatism::Lbl(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Blo(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Sbm(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Srn(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Jmp(_arg) => {
+                            iter.nth(2);
+                        }
+                        _ => {
+                            iter.nth(1);
+                        }
+                    }
+                }
+            }
+            Awatism::Gr8 => {
+                let top = bubble_abyss.top().unwrap();
+                let before_top = bubble_abyss.before_top().unwrap();
+
+                if !top.is_double()
+                    && !before_top.is_double()
+                    && top.get_val() > before_top.get_val()
+                {
+                    // execute next line
+                } else {
+                    let next_command = &instructions[index + 1];
+                    let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
+                    match awatism {
+                        Awatism::Lbl(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Blo(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Sbm(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Srn(_arg) => {
+                            iter.nth(2);
+                        }
+                        Awatism::Jmp(_arg) => {
+                            iter.nth(2);
+                        }
+                        _ => {
+                            iter.nth(1);
+                        }
+                    }
+                }
+            }
+            Awatism::Trm => {
+                break;
+            }
             _ => {}
         }
         // println!("{:#?}", bubble_abyss);
