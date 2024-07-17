@@ -151,7 +151,17 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 bubble_abyss.push(Bubble::Simple(negative * num.parse::<i32>().unwrap()));
             }
             Awatism::Blo(arg) => {
-                bubble_abyss.push(Bubble::Simple(arg as i32));
+                bubble_abyss.push(Bubble::Simple((arg as i8) as i32));
+            }
+            Awatism::Sbm(arg) => {
+                let bubble = bubble_abyss.pop().unwrap();
+                if arg == 0 {
+                    bubble_abyss.bubbles.insert(0, bubble);
+                } else {
+                    bubble_abyss
+                        .bubbles
+                        .insert(bubble_abyss.bubbles.len() - arg as usize, bubble);
+                }
             }
             Awatism::Pop => {
                 let bubble = bubble_abyss.pop().unwrap();
