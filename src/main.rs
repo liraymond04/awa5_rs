@@ -117,10 +117,10 @@ fn main() {
         let file_type = detect_file_format(input_file);
 
         match file_type {
-            "awa" => {
+            "awasm" => {
                 let lines = read_lines(input_file).unwrap();
 
-                let instructions = parser::awa::parse_lines(lines);
+                let instructions = parser::awasm::parse_lines(lines);
 
                 let object_vec = assembler::make_object_vec(&instructions);
 
@@ -132,10 +132,10 @@ fn main() {
                         .and_then(|ext| ext.to_str())
                         .unwrap()
                     {
-                        "awa" => {
+                        "awasm" => {
                             let _ = fs::copy(input_file, output_file);
                         }
-                        "awatalk" => {}
+                        "awa" => {}
                         "o" => {
                             let _ = write_object_file(output_file, object_vec);
                         }
@@ -145,7 +145,7 @@ fn main() {
                     interpet_object(object_vec);
                 }
             }
-            "awatalk" => {
+            "awa" => {
                 let content = fs::read_to_string(input_file).unwrap();
 
                 let instructions = parser::awatalk::parse_string(&content);
@@ -160,8 +160,8 @@ fn main() {
                         .and_then(|ext| ext.to_str())
                         .unwrap()
                     {
-                        "awa" => {}
-                        "awatalk" => {
+                        "awasm" => {}
+                        "awa" => {
                             let _ = fs::copy(input_file, output_file);
                         }
                         "o" => {
@@ -183,8 +183,8 @@ fn main() {
                             .and_then(|ext| ext.to_str())
                             .unwrap()
                         {
+                            "awasm" => {}
                             "awa" => {}
-                            "awatalk" => {}
                             "o" => {
                                 let _ = fs::copy(input_file, output_file);
                             }
@@ -209,8 +209,8 @@ fn detect_file_format(filename: &str) -> &str {
         .and_then(OsStr::to_str)
         .unwrap();
     match extension {
+        "awasm" => return "awasm",
         "awa" => return "awa",
-        "awatalk" => return "awatalk",
         "o" => return "o",
         _ => {}
     }
@@ -229,10 +229,10 @@ fn detect_file_format(filename: &str) -> &str {
         .join(" ");
 
     if normalized.starts_with("awa ") {
-        return "awatalk";
+        return "awa";
     }
 
-    "awa"
+    "awasm"
 }
 
 fn read_binary_file(filename: &str) -> Result<Vec<u8>, io::Error> {

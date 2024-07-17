@@ -1,4 +1,4 @@
-pub mod awa {
+pub mod awasm {
     use crate::{Awatism, Instruction};
 
     pub fn parse_lines(lines: impl Iterator<Item = String>) -> Vec<Instruction> {
