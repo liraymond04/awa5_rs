@@ -258,13 +258,7 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 {
                     // execute next line
                 } else {
-                    let next_command = &instructions[index + 1];
-                    let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
-                    match awatism {
-                        _ => {
-                            index += 1;
-                        }
-                    }
+                    index += 1;
                 }
             }
             Awatism::Lss => {
@@ -277,28 +271,7 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 {
                     // execute next line
                 } else {
-                    let next_command = &instructions[index + 1];
-                    let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
-                    match awatism {
-                        Awatism::Lbl(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Blo(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Sbm(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Srn(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Jmp(_arg) => {
-                            index += 2;
-                        }
-                        _ => {
-                            index += 1;
-                        }
-                    }
+                    index += 1;
                 }
             }
             Awatism::Gr8 => {
@@ -311,34 +284,12 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                 {
                     // execute next line
                 } else {
-                    let next_command = &instructions[index + 1];
-                    let awatism = Awatism::from_u8(next_command.op, next_command.arg).unwrap();
-                    match awatism {
-                        Awatism::Lbl(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Blo(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Sbm(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Srn(_arg) => {
-                            index += 2;
-                        }
-                        Awatism::Jmp(_arg) => {
-                            index += 2;
-                        }
-                        _ => {
-                            index += 1;
-                        }
-                    }
+                    index += 1;
                 }
             }
             Awatism::Trm => {
                 break;
             }
-            _ => {}
         }
 
         index += 1;
