@@ -102,3 +102,125 @@ pub fn make_object_vec(instructions: &[Instruction]) -> Vec<u8> {
 
     vec
 }
+
+pub fn object_to_awasm(vec: &Vec<u8>) -> String {
+    let mut result = String::new();
+    let mut i = 0;
+    while i < vec.len() {
+        let op = vec[i];
+        let arg = vec[i + 1];
+        match Awatism::from_u8(op, arg).unwrap() {
+            Awatism::Nop => {
+                result += "nop";
+            }
+            Awatism::Prn => {
+                result += "prn";
+            }
+            Awatism::Pr1 => {
+                result += "pr1";
+            }
+            Awatism::Red => {
+                result += "red";
+            }
+            Awatism::R3d => {
+                result += "r3d";
+            }
+            Awatism::Blo(arg) => {
+                result += &format!("blo {}", arg);
+            }
+            Awatism::Sbm(arg) => {
+                result += &format!("sbm {}", arg);
+            }
+            Awatism::Pop => {
+                result += "pop";
+            }
+            Awatism::Dpl => {
+                result += "dpl";
+            }
+            Awatism::Srn(arg) => {
+                result += &format!("srn {}", arg);
+            }
+            Awatism::Mrg => {
+                result += "mrg";
+            }
+            Awatism::Add => {
+                result += "4dd";
+            }
+            Awatism::Sub => {
+                result += "sub";
+            }
+            Awatism::Mul => {
+                result += "mul";
+            }
+            Awatism::Div => {
+                result += "div";
+            }
+            Awatism::Cnt => {
+                result += "cnt";
+            }
+            Awatism::Lbl(arg) => {
+                result += &format!("lbl {}", arg);
+            }
+            Awatism::Jmp(arg) => {
+                result += &format!("jmp {}", arg);
+            }
+            Awatism::Eql => {
+                result += "eql";
+            }
+            Awatism::Lss => {
+                result += "lss";
+            }
+            Awatism::Gr8 => {
+                result += "gr8";
+            }
+            Awatism::Trm => {
+                result += "trm";
+            }
+        }
+        result += "\n";
+        i += 2;
+    }
+    result
+}
+
+pub fn object_to_awa(vec: &Vec<u8>) -> String {
+    let mut result = String::from("awa");
+    let mut i = 0;
+    while i < vec.len() {
+        let op = vec[i];
+        let arg = vec[i + 1];
+
+        result += &to_mapping_op(op);
+
+        if Awatism::needs_args(op) {
+            result += &to_mapping_arg(arg, Awatism::arg_bits(op));
+        }
+
+        i += 2;
+    }
+    result
+}
+
+fn to_mapping_op(num: u8) -> String {
+    let mapping = [" awa", "wa"];
+    let mut result = String::new();
+
+    let start_pos = 8 - 5;
+    for i in start_pos..8 {
+        let bit = (num >> (7 - i)) & 1;
+        result += mapping[bit as usize];
+    }
+    result
+}
+
+fn to_mapping_arg(num: u8, size: usize) -> String {
+    let mapping = [" awa", "wa"];
+    let mut result = String::new();
+
+    let start_pos = 8 - size;
+    for i in start_pos..8 {
+        let bit = (num >> (7 - i)) & 1;
+        result += mapping[bit as usize];
+    }
+    result
+}

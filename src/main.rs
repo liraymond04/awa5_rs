@@ -135,7 +135,10 @@ fn main() {
                         "awasm" => {
                             let _ = fs::copy(input_file, output_file);
                         }
-                        "awa" => {}
+                        "awa" => {
+                            let result = assembler::object_to_awa(&object_vec);
+                            let _ = write_string_file(output_file, &result);
+                        }
                         "o" => {
                             let _ = write_object_file(output_file, object_vec);
                         }
@@ -160,7 +163,10 @@ fn main() {
                         .and_then(|ext| ext.to_str())
                         .unwrap()
                     {
-                        "awasm" => {}
+                        "awasm" => {
+                            let result = assembler::object_to_awasm(&object_vec);
+                            let _ = write_string_file(output_file, &result);
+                        }
                         "awa" => {
                             let _ = fs::copy(input_file, output_file);
                         }
@@ -183,8 +189,14 @@ fn main() {
                             .and_then(|ext| ext.to_str())
                             .unwrap()
                         {
-                            "awasm" => {}
-                            "awa" => {}
+                            "awasm" => {
+                                let result = assembler::object_to_awasm(&binary_data);
+                                let _ = write_string_file(output_file, &result);
+                            }
+                            "awa" => {
+                                let result = assembler::object_to_awa(&binary_data);
+                                let _ = write_string_file(output_file, &result);
+                            }
                             "o" => {
                                 let _ = fs::copy(input_file, output_file);
                             }
@@ -252,4 +264,10 @@ fn write_object_file(filename: &str, vec: Vec<u8>) -> io::Result<()> {
     let mut file = File::create(filename).unwrap();
 
     file.write_all(&vec)
+}
+
+fn write_string_file(filename: &str, content: &str) -> io::Result<()> {
+    let mut file = File::create(filename).unwrap();
+
+    file.write_all(content.as_bytes())
 }
