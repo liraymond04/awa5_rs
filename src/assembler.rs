@@ -198,6 +198,7 @@ pub fn object_to_awa(vec: &Vec<u8>) -> String {
 
         i += 2;
     }
+    result += "\n";
     result
 }
 
