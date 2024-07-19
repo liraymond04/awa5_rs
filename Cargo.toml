@@ -8,3 +8,4 @@ repository = "https://github.com/liraymond04/awa5_rs"
 
 [dependencies]
 clap = { version = "4.5.9", features = ["derive"] }
+libloading = "0.8.4"

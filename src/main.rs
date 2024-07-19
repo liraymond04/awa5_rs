@@ -1,6 +1,7 @@
 extern crate clap;
 
 mod assembler;
+mod dynlib;
 mod interpreter;
 mod parser;
 
@@ -35,6 +36,7 @@ pub enum Awatism {
     Eql,
     Lss,
     Gr8,
+    Lib,
     Trm,
 }
 
@@ -62,6 +64,9 @@ impl Awatism {
             0x12 => Some(Awatism::Eql),
             0x13 => Some(Awatism::Lss),
             0x14 => Some(Awatism::Gr8),
+            0x15 => None, // syscall
+            0x16 => None, // double_pop
+            0x17 => Some(Awatism::Lib),
             0x1F => Some(Awatism::Trm),
             _ => None,
         }

@@ -51,6 +51,7 @@ pub mod awasm {
             "eql" if tokens.len() == 1 => vec![Awatism::Eql],
             "lss" if tokens.len() == 1 => vec![Awatism::Lss],
             "gr8" if tokens.len() == 1 => vec![Awatism::Gr8],
+            "lib" if tokens.len() == 1 => vec![Awatism::Lib],
             "trm" if tokens.len() == 1 => vec![Awatism::Trm],
             // special macros
             "!str" if tokens.len() == 2 => {

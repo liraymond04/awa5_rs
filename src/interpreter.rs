@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Awatism, AWA_SCII};
+use crate::{dynlib, Awatism, AWA_SCII};
 
 #[derive(Debug)]
 struct Instruction {
@@ -34,6 +34,19 @@ impl Bubble {
             Bubble::Simple(val) => *val,
             _ => panic!("Expected bubble to be single bubble"),
         }
+    }
+
+    pub fn to_u8_array(&self) -> Vec<u8> {
+        let mut vec = Vec::new();
+        match self {
+            Bubble::Simple(val) => vec.push(*val as u8),
+            Bubble::Double(bubbles) => {
+                for bubble in bubbles {
+                    vec.push(bubble.get_val() as u8);
+                }
+            }
+        }
+        vec
     }
 }
 
@@ -80,6 +93,13 @@ pub fn interpet_object(object_vec: Vec<u8>) {
     let mut instructions: Vec<Instruction> = Vec::new();
 
     let mut bubble_abyss = BubbleAbyss::new();
+
+    // TODO optional pass lib/ dir and load
+    // all shared libraries in path, and handle
+    // cross platform libs like Windows DLLs
+    //
+    // --lib <path>
+    let libs = dynlib::load_libs(&["./examples/lib/libfoo.so"]);
 
     // create label map
     for (index, chunk) in object_vec.chunks_exact(2).enumerate() {
@@ -287,6 +307,14 @@ pub fn interpet_object(object_vec: Vec<u8>) {
                     index += 1;
                 }
             }
+            Awatism::Lib => {
+                let top = bubble_abyss.pop().unwrap();
+                if top.is_double() {
+                    let data = top.to_u8_array();
+                    let (fn_name, args) = dynlib::parse_fn_ins_arg(&data);
+                    dynlib::call_lib_fn(&libs, &fn_name, args)
+                }
+            }
             Awatism::Trm => {
                 break;
             }
@@ -296,7 +324,12 @@ pub fn interpet_object(object_vec: Vec<u8>) {
     }
 }
 
-fn print_bubble(bubble_abyss: &mut BubbleAbyss, bubble: &Bubble, number: bool, current_double: bool) {
+fn print_bubble(
+    bubble_abyss: &mut BubbleAbyss,
+    bubble: &Bubble,
+    number: bool,
+    current_double: bool,
+) {
     match bubble {
         Bubble::Simple(val) => {
             if number {

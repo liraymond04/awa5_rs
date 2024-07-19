@@ -1,0 +1,7 @@
+;shared lib function call
+blo 3   ;fn_name_len
+blo 102 ;f
+blo 111 ;o
+blo 111 ;o
+srn 4
+lib

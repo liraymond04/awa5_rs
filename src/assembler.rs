@@ -86,6 +86,10 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
             let bytes = vec![0x14, 0x00];
             bytes
         }
+        Awatism::Lib => {
+            let bytes = vec![0x17, 0x00];
+            bytes
+        }
         Awatism::Trm => {
             let bytes = vec![0x1F, 0x00];
             bytes
@@ -172,6 +176,9 @@ pub fn object_to_awasm(vec: &Vec<u8>) -> String {
             }
             Awatism::Gr8 => {
                 result += "gr8";
+            }
+            Awatism::Lib => {
+                result += "lib";
             }
             Awatism::Trm => {
                 result += "trm";
