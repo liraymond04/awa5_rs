@@ -1,4 +1,6 @@
 pub mod awasm {
+    use core::panic;
+
     use crate::{Awatism, Instruction, AWA_SCII};
 
     pub fn parse_lines(lines: impl Iterator<Item = String>) -> Vec<Instruction> {
@@ -54,6 +56,60 @@ pub mod awasm {
             "lib" if tokens.len() == 1 => vec![Awatism::Lib],
             "trm" if tokens.len() == 1 => vec![Awatism::Trm],
             // special macros
+            "!i32" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                let mut res = Vec::new();
+                for byte in i32::to_le_bytes(b) {
+                    res.push(Awatism::Blo(byte));
+                }
+                res.push(Awatism::Srn(4));
+                res
+            }
+            "!f32" if tokens.len() == 2 => {
+                let b: f32 = tokens[1].parse().ok().unwrap();
+                let mut res = Vec::new();
+                for byte in f32::to_le_bytes(b) {
+                    res.push(Awatism::Blo(byte));
+                }
+                res.push(Awatism::Srn(4));
+                res
+            }
+            "!char" if tokens.len() == 2 => {
+                let mut string_content = tokens[1].trim();
+                let replaced_string = string_content.replace("\\n", "\n");
+                string_content = &replaced_string;
+
+                let mut awascii = false;
+
+                if string_content.chars().nth(0).unwrap() == 'a' {
+                    string_content = &string_content[1..];
+                    awascii = true;
+                }
+
+                if string_content.chars().nth(0).unwrap() != '\'' {
+                    panic!("Missing opening \"'\"");
+                }
+                if string_content.len() == 1 || string_content.chars().nth_back(0).unwrap() != '\'' {
+                    panic!("Missing closing \"'\"");
+                }
+
+                if string_content.len() > 3 {
+                    panic!("!char expects a single character")
+                }
+
+                let string_content = &string_content[1..string_content.len() - 1];
+
+                let mut res = Vec::new();
+                let c = string_content.chars().nth(0).unwrap();
+
+                if awascii {
+                    res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
+                } else {
+                    res.push(Awatism::Blo(c as u8));
+                }
+
+                res
+            }
             "!str" if tokens.len() == 2 => {
                 let mut string_content = tokens[1].trim();
                 let replaced_string = string_content.replace("\\n", "\n");

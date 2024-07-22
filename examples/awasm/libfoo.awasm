@@ -1,62 +1,30 @@
 ;shared lib function call
 
 ;fn name
-blo 111 ;o
-blo 111 ;o
-blo 102 ;f
-srn 3
+!str "foo"
 
-;arg 1
-blo 0 ;i32, 4 le
-blo 4
-blo 0
-blo 0
-blo 0
-srn 4
+blo 0 ;arg 1
+!i32 4
 srn 2
 
-;arg 2
-blo 3
-blo 55
-blo 38
-blo 16
-blo 41
-blo 19
-blo 1
-blo 52
-blo 19
-blo 16
-blo 16
-blo 15
-blo 8
-srn 12
+blo 3 ;arg 2
+!str a"Hello World!"
 srn 2
 
-; arg 3
-blo 4
-blo 111 ;o
-blo 111 ;o
-blo 102 ;f
-srn 3
+blo 4 ;arg 3
+!str "foo"
 srn 2
 
-;arg 4
-blo 0 ;f32, 4.2 le
-blo 102
-blo 102
-blo 134
-blo 64
-srn 4
+blo 0 ;arg 4
+!f32 4.2
 srn 2
 
-;arg 5
-blo 1 ;char awascii
-blo 1
+blo 1 ;arg 5
+!char a'W'
 srn 2
 
-;arg 6
-blo 2 ;char ascii
-blo 97
+blo 2 ;arg 6
+!char 'a'
 srn 2
 
 ;surround args
