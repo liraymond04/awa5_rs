@@ -3,26 +3,31 @@ use std::collections::HashMap;
 
 use libloading::{Library, Symbol};
 
-pub fn parse_fn_ins_arg(data: &[u8]) -> (String, Vec<Vec<u8>>) {
-    let mut cursor = 0;
+use crate::interpreter::Bubble;
 
-    let fn_name_len = data[cursor] as usize;
-    cursor += 1;
+pub fn parse_fn_name(data: &[u8]) -> String {
+    String::from_utf8(data.to_vec()).unwrap()
+}
 
-    let fn_name = String::from_utf8(data[cursor..(cursor + fn_name_len)].to_vec()).unwrap();
-    cursor += fn_name_len;
-
-    // TODO handle multiple args properly with macros
+pub fn parse_fn_args(bubble: &Bubble) -> Vec<u8> {
     let mut args = Vec::new();
-    while cursor < data.len() {
-        let arg_len = data[cursor] as usize;
-        cursor += 1;
-        let arg = data[cursor..(cursor + arg_len)].to_vec();
-        args.push(arg);
-        cursor += arg_len;
+
+    let bubbles = bubble.get_bubbles();
+    for bubble in bubbles {
+        let bubbles = bubble.get_bubbles();
+        let arg_type = bubbles[0].get_val();
+
+        match arg_type {
+            // i32 or f32
+            0x0 => {
+                let byte_array = bubbles[1].to_u8_array();
+                args.extend_from_slice(&byte_array);
+            }
+            _ => {}
+        }
     }
 
-    (fn_name, args)
+    args
 }
 
 pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
@@ -36,12 +41,13 @@ pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
     libs
 }
 
-pub fn call_lib_fn(libs: &HashMap<String, Library>, fn_name: &str, args: Vec<Vec<u8>>) {
+pub fn call_lib_fn(libs: &HashMap<String, Library>, fn_name: &str, args: Vec<u8>) {
     for (_path, lib) in libs {
         unsafe {
-            if let Ok(f) = lib.get::<Symbol<unsafe extern "C" fn(Vec<Vec<u8>>)>>(fn_name.as_bytes())
+            if let Ok(f) =
+                lib.get::<Symbol<unsafe extern "C" fn(*const u8, usize)>>(fn_name.as_bytes())
             {
-                f(args.clone());
+                f(args.as_ptr(), args.len());
                 return;
             }
         }

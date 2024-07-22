@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{dynlib, Awatism, AWA_SCII};
+use crate::{dynlib::{self, call_lib_fn}, Awatism, AWA_SCII};
 
 #[derive(Debug)]
 struct Instruction {
@@ -9,7 +9,7 @@ struct Instruction {
 }
 
 #[derive(Clone, Debug)]
-enum Bubble {
+pub enum Bubble {
     Simple(i32),
     Double(Vec<Bubble>),
 }
@@ -309,10 +309,14 @@ pub fn interpet_object(object_vec: Vec<u8>) {
             }
             Awatism::Lib => {
                 let top = bubble_abyss.pop().unwrap();
-                if top.is_double() {
-                    let data = top.to_u8_array();
-                    let (fn_name, args) = dynlib::parse_fn_ins_arg(&data);
-                    dynlib::call_lib_fn(&libs, &fn_name, args)
+                match top {
+                    Bubble::Simple(_) => {}
+                    Bubble::Double(bubbles) => {
+                        let fn_name = &bubbles[0].to_u8_array();
+                        let fn_name = dynlib::parse_fn_name(&fn_name);
+                        let fn_args = dynlib::parse_fn_args(&bubbles[1]);
+                        call_lib_fn(&libs, &fn_name, fn_args);
+                    }
                 }
             }
             Awatism::Trm => {

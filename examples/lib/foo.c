@@ -1,11 +1,15 @@
 #include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 
-void foo(void)
+void foo(const uint8_t* data, size_t length)
 {
-    puts("Hello, I am a shared library");
-}
+    int32_t a;
+    float b;
 
-void foo_int(int a)
-{
-    printf("Got number: %d\n", a);
+    memcpy(&a, data, sizeof(int32_t));
+    data += sizeof(int32_t); 
+    memcpy(&b, data, sizeof(float));
+
+    printf("Got number: %d %f\n", a, b);
 }
