@@ -1,46 +1,97 @@
 pub mod awasm {
-    use crate::{Awatism, Instruction};
+    use crate::{Awatism, Instruction, AWA_SCII};
 
     pub fn parse_lines(lines: impl Iterator<Item = String>) -> Vec<Instruction> {
-        lines.filter_map(|line| parse_line(&line)).collect()
+        lines.flat_map(|line| parse_line(&line)).collect()
     }
 
-    pub fn parse_line(line: &str) -> Option<Instruction> {
+    pub fn parse_line(line: &str) -> Vec<Instruction> {
         let line_without_comments = line.split(';').next().unwrap_or("");
         let trimmed = line_without_comments.trim();
-        let tokens: Vec<&str> = trimmed.split_whitespace().collect();
+        let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
 
         if tokens.is_empty() || trimmed.starts_with(';') {
-            return None;
+            return vec![];
         }
 
         let awatism = match tokens[0] {
-            "nop" if tokens.len() == 1 => Awatism::Nop,
-            "prn" if tokens.len() == 1 => Awatism::Prn,
-            "pr1" if tokens.len() == 1 => Awatism::Pr1,
-            "red" if tokens.len() == 1 => Awatism::Red,
-            "r3d" if tokens.len() == 1 => Awatism::R3d,
-            "blo" if tokens.len() == 2 => Awatism::Blo(tokens[1].parse().ok()?),
-            "sbm" if tokens.len() == 2 => Awatism::Sbm(tokens[1].parse().ok()?),
-            "pop" if tokens.len() == 1 => Awatism::Pop,
-            "dpl" if tokens.len() == 1 => Awatism::Dpl,
-            "srn" if tokens.len() == 2 => Awatism::Srn(tokens[1].parse().ok()?),
-            "mrg" if tokens.len() == 1 => Awatism::Mrg,
-            "4dd" if tokens.len() == 1 => Awatism::Add,
-            "sub" if tokens.len() == 1 => Awatism::Sub,
-            "mul" if tokens.len() == 1 => Awatism::Mul,
-            "div" if tokens.len() == 1 => Awatism::Div,
-            "cnt" if tokens.len() == 1 => Awatism::Cnt,
-            "lbl" if tokens.len() == 2 => Awatism::Lbl(tokens[1].parse().ok()?),
-            "jmp" if tokens.len() == 2 => Awatism::Jmp(tokens[1].parse().ok()?),
-            "eql" if tokens.len() == 1 => Awatism::Eql,
-            "lss" if tokens.len() == 1 => Awatism::Lss,
-            "gr8" if tokens.len() == 1 => Awatism::Gr8,
-            "trm" if tokens.len() == 1 => Awatism::Trm,
-            _ => return None,
+            "nop" if tokens.len() == 1 => vec![Awatism::Nop],
+            "prn" if tokens.len() == 1 => vec![Awatism::Prn],
+            "pr1" if tokens.len() == 1 => vec![Awatism::Pr1],
+            "red" if tokens.len() == 1 => vec![Awatism::Red],
+            "r3d" if tokens.len() == 1 => vec![Awatism::R3d],
+            "blo" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                vec![Awatism::Blo(b as u8)]
+            }
+            "sbm" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                vec![Awatism::Sbm(b as u8)]
+            }
+            "pop" if tokens.len() == 1 => vec![Awatism::Pop],
+            "dpl" if tokens.len() == 1 => vec![Awatism::Dpl],
+            "srn" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                vec![Awatism::Srn(b as u8)]
+            }
+            "mrg" if tokens.len() == 1 => vec![Awatism::Mrg],
+            "4dd" if tokens.len() == 1 => vec![Awatism::Add],
+            "sub" if tokens.len() == 1 => vec![Awatism::Sub],
+            "mul" if tokens.len() == 1 => vec![Awatism::Mul],
+            "div" if tokens.len() == 1 => vec![Awatism::Div],
+            "cnt" if tokens.len() == 1 => vec![Awatism::Cnt],
+            "lbl" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                vec![Awatism::Lbl(b as u8)]
+            }
+            "jmp" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                vec![Awatism::Jmp(b as u8)]
+            }
+            "eql" if tokens.len() == 1 => vec![Awatism::Eql],
+            "lss" if tokens.len() == 1 => vec![Awatism::Lss],
+            "gr8" if tokens.len() == 1 => vec![Awatism::Gr8],
+            "trm" if tokens.len() == 1 => vec![Awatism::Trm],
+            // special macros
+            "!str" if tokens.len() == 2 => {
+                let mut string_content = tokens[1].trim();
+                let replaced_string = string_content.replace("\\n", "\n");
+                string_content = &replaced_string;
+
+                let mut awascii = false;
+
+                if string_content.chars().nth(0).unwrap() == 'a' {
+                    string_content = &string_content[1..];
+                    awascii = true;
+                }
+
+                if string_content.chars().nth(0).unwrap() != '"' {
+                    panic!("Missing opening '\"'");
+                }
+                if string_content.len() == 1 || string_content.chars().nth_back(0).unwrap() != '"' {
+                    panic!("Missing closing '\"'");
+                }
+                let string_content = &string_content[1..string_content.len() - 1];
+
+                let mut res = Vec::new();
+                for c in string_content.chars().rev() {
+                    if awascii {
+                        res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
+                    } else {
+                        res.push(Awatism::Blo(c as u8));
+                    }
+                }
+                res.push(Awatism::Srn(res.len() as u8));
+
+                res
+            }
+            _ => vec![],
         };
 
-        Some(Instruction { awatism })
+        awatism
+            .into_iter()
+            .map(|a| Instruction { awatism: a })
+            .collect()
     }
 }
 

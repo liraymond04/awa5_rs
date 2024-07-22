@@ -1,15 +1,2 @@
-blo 63
-blo 55
-blo 38
-blo 16
-blo 41
-blo 19
-blo 1
-blo 52
-blo 19
-blo 16
-blo 16
-blo 15
-blo 8
-srn 13
+!str a"Hello World!\n"
 prn
