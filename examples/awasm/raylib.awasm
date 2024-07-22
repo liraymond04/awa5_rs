@@ -1,0 +1,53 @@
+; raylib.awasm
+;
+; example raylib program using awa5_raylib bindings
+
+!str "initwindow"
+!_i32 800
+!_i32 450
+!_str "AWA5.0 Raylib"
+srn 3
+srn 2
+lib
+
+!str "settargetfps"
+!_i32 60
+srn 1
+srn 2
+lib
+
+;start loop
+lbl 5
+
+!str "BeginDrawing"
+srn 1
+lib
+
+!str "clearbackground"
+!_i32 0
+!_i32 0
+!_i32 0
+srn 3
+srn 2
+lib
+
+!str "drawtext"
+!_str "Congrats! You created your first window!"
+!_i32 190
+!_i32 200
+!_i32 20
+!_i32 200
+!_i32 200
+!_i32 200
+srn 7
+srn 2
+lib
+
+!str "EndDrawing"
+srn 1
+lib
+
+jmp 5
+
+;end prgm
+trm

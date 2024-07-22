@@ -59,6 +59,7 @@ Options:
   -s, --string <string>  String to interpret or convert
       --awasm            Parse string as awasm
       --awa              Parse string as awatalk
+  -p, --path <path>      Search paths separated by ';' for shared libraries
   -h, --help             Print help
   -V, --version          Print version
 ```

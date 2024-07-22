@@ -16,7 +16,7 @@ LIBS = $(patsubst $(SRCDIR)/%.c,$(OUTDIR)/lib%.so,$(SRCS))
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -fPIC
-LDFLAGS = -shared
+LDFLAGS = -shared -lraylib
 
 # Default target to build all shared libraries
 all: $(LIBS)
