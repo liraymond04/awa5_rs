@@ -3,29 +3,13 @@
 ;fn name
 !str "foo"
 
-blo 0 ;arg 1
-!i32 4
-srn 2
-
-blo 3 ;arg 2
-!str a"Hello World!"
-srn 2
-
-blo 4 ;arg 3
-!str "foo"
-srn 2
-
-blo 0 ;arg 4
-!f32 4.2
-srn 2
-
-blo 1 ;arg 5
-!char a'W'
-srn 2
-
-blo 2 ;arg 6
-!char 'a'
-srn 2
+;args
+!_i32 4
+!_str a"Hello World!"
+!_str "foo"
+!_f32 4.2
+!_chr a'W'
+!_chr 'a'
 
 ;surround args
 srn 6
@@ -33,4 +17,5 @@ srn 6
 ;pass fn names and args
 srn 2
 
+;call function
 lib

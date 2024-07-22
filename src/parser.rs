@@ -56,90 +56,34 @@ pub mod awasm {
             "lib" if tokens.len() == 1 => vec![Awatism::Lib],
             "trm" if tokens.len() == 1 => vec![Awatism::Trm],
             // special macros
-            "!i32" if tokens.len() == 2 => {
-                let b: i32 = tokens[1].parse().ok().unwrap();
-                let mut res = Vec::new();
-                for byte in i32::to_le_bytes(b) {
-                    res.push(Awatism::Blo(byte));
-                }
-                res.push(Awatism::Srn(4));
+            "!i32" if tokens.len() == 2 => process_i32(tokens[1].parse().ok().unwrap()),
+            "!f32" if tokens.len() == 2 => process_f32(tokens[1].parse().ok().unwrap()),
+            "!chr" if tokens.len() == 2 => process_chr(tokens[1]).0,
+            "!str" if tokens.len() == 2 => process_str(tokens[1]).0,
+            "!_i32" if tokens.len() == 2 => {
+                let mut res = vec![Awatism::Blo(0x0)];
+                res.extend(process_i32(tokens[1].parse().ok().unwrap()));
+                res.push(Awatism::Srn(2));
                 res
             }
-            "!f32" if tokens.len() == 2 => {
-                let b: f32 = tokens[1].parse().ok().unwrap();
-                let mut res = Vec::new();
-                for byte in f32::to_le_bytes(b) {
-                    res.push(Awatism::Blo(byte));
-                }
-                res.push(Awatism::Srn(4));
+            "!_f32" if tokens.len() == 2 => {
+                let mut res = vec![Awatism::Blo(0x0)];
+                res.extend(process_f32(tokens[1].parse().ok().unwrap()));
+                res.push(Awatism::Srn(2));
                 res
             }
-            "!char" if tokens.len() == 2 => {
-                let mut string_content = tokens[1].trim();
-                let replaced_string = string_content.replace("\\n", "\n");
-                string_content = &replaced_string;
-
-                let mut awascii = false;
-
-                if string_content.chars().nth(0).unwrap() == 'a' {
-                    string_content = &string_content[1..];
-                    awascii = true;
-                }
-
-                if string_content.chars().nth(0).unwrap() != '\'' {
-                    panic!("Missing opening \"'\"");
-                }
-                if string_content.len() == 1 || string_content.chars().nth_back(0).unwrap() != '\'' {
-                    panic!("Missing closing \"'\"");
-                }
-
-                if string_content.len() > 3 {
-                    panic!("!char expects a single character")
-                }
-
-                let string_content = &string_content[1..string_content.len() - 1];
-
-                let mut res = Vec::new();
-                let c = string_content.chars().nth(0).unwrap();
-
-                if awascii {
-                    res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
-                } else {
-                    res.push(Awatism::Blo(c as u8));
-                }
-
+            "!_chr" if tokens.len() == 2 => {
+                let (process, awascii) = process_chr(tokens[1]);
+                let mut res = vec![Awatism::Blo(if awascii { 0x1 } else { 0x2 })];
+                res.extend(process);
+                res.push(Awatism::Srn(2));
                 res
             }
-            "!str" if tokens.len() == 2 => {
-                let mut string_content = tokens[1].trim();
-                let replaced_string = string_content.replace("\\n", "\n");
-                string_content = &replaced_string;
-
-                let mut awascii = false;
-
-                if string_content.chars().nth(0).unwrap() == 'a' {
-                    string_content = &string_content[1..];
-                    awascii = true;
-                }
-
-                if string_content.chars().nth(0).unwrap() != '"' {
-                    panic!("Missing opening '\"'");
-                }
-                if string_content.len() == 1 || string_content.chars().nth_back(0).unwrap() != '"' {
-                    panic!("Missing closing '\"'");
-                }
-                let string_content = &string_content[1..string_content.len() - 1];
-
-                let mut res = Vec::new();
-                for c in string_content.chars().rev() {
-                    if awascii {
-                        res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
-                    } else {
-                        res.push(Awatism::Blo(c as u8));
-                    }
-                }
-                res.push(Awatism::Srn(res.len() as u8));
-
+            "!_str" if tokens.len() == 2 => {
+                let (process, awascii) = process_str(tokens[1]);
+                let mut res = vec![Awatism::Blo(if awascii { 0x3 } else { 0x4 })];
+                res.extend(process);
+                res.push(Awatism::Srn(2));
                 res
             }
             _ => vec![],
@@ -149,6 +93,89 @@ pub mod awasm {
             .into_iter()
             .map(|a| Instruction { awatism: a })
             .collect()
+    }
+
+    fn process_i32(value: i32) -> Vec<Awatism> {
+        let mut res = Vec::new();
+        for byte in i32::to_le_bytes(value) {
+            res.push(Awatism::Blo(byte));
+        }
+        res.push(Awatism::Srn(4));
+        res
+    }
+
+    fn process_f32(value: f32) -> Vec<Awatism> {
+        let mut res = Vec::new();
+        for byte in f32::to_le_bytes(value) {
+            res.push(Awatism::Blo(byte));
+        }
+        res.push(Awatism::Srn(4));
+        res
+    }
+
+    fn process_chr(string_content: &str) -> (Vec<Awatism>, bool) {
+        let mut res = Vec::new();
+        let replaced_string = string_content.replace("\\n", "\n");
+        let mut string_content = replaced_string.trim();
+
+        let mut awascii = false;
+        if string_content.chars().nth(0).unwrap() == 'a' {
+            string_content = &string_content[1..];
+            awascii = true;
+        }
+
+        if string_content.chars().nth(0).unwrap() != '\'' {
+            panic!("Missing opening \"'\"");
+        }
+        if string_content.len() == 1 || string_content.chars().nth_back(0).unwrap() != '\'' {
+            panic!("Missing closing \"'\"");
+        }
+
+        if string_content.len() > 3 {
+            panic!("!char expects a single character")
+        }
+
+        let string_content = &string_content[1..string_content.len() - 1];
+        let c = string_content.chars().nth(0).unwrap();
+
+        if awascii {
+            res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
+        } else {
+            res.push(Awatism::Blo(c as u8));
+        }
+
+        (res, awascii)
+    }
+
+    fn process_str(string_content: &str) -> (Vec<Awatism>, bool) {
+        let mut res = Vec::new();
+        let replaced_string = string_content.replace("\\n", "\n");
+        let mut string_content = replaced_string.trim();
+
+        let mut awascii = false;
+        if string_content.chars().nth(0).unwrap() == 'a' {
+            string_content = &string_content[1..];
+            awascii = true;
+        }
+
+        if string_content.chars().nth(0).unwrap() != '"' {
+            panic!("Missing opening '\"'");
+        }
+        if string_content.len() == 1 || string_content.chars().nth_back(0).unwrap() != '"' {
+            panic!("Missing closing '\"'");
+        }
+        let string_content = &string_content[1..string_content.len() - 1];
+
+        for c in string_content.chars().rev() {
+            if awascii {
+                res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
+            } else {
+                res.push(Awatism::Blo(c as u8));
+            }
+        }
+        res.push(Awatism::Srn(res.len() as u8));
+
+        (res, awascii)
     }
 }
 

@@ -29,7 +29,7 @@ pub fn parse_fn_args(bubble: &Bubble) -> Vec<u8> {
                 let byte_array = bubbles[1].to_u8_array();
                 args.extend_from_slice(&byte_array);
             }
-            // awascii c har
+            // awascii char
             0x1 => {
                 let char = AWA_SCII.chars().nth(bubbles[1].get_val() as usize).unwrap();
                 args.push(char as u8);
