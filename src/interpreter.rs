@@ -316,8 +316,13 @@ pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
                         let mut fn_name = bubbles[0].to_u8_array();
                         fn_name.reverse();
                         let fn_name = dynlib::parse_fn_name(&fn_name);
-                        let fn_args = dynlib::parse_fn_args(&bubbles[1]);
-                        call_lib_fn(&libs, &fn_name, fn_args);
+
+                        if bubbles.len() == 1 {
+                            call_lib_fn(&libs, &fn_name, vec![]);
+                        } else {
+                            let fn_args = dynlib::parse_fn_args(&bubbles[1]);
+                            call_lib_fn(&libs, &fn_name, fn_args);
+                        }
                     }
                 }
             }
