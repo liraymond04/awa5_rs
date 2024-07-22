@@ -1,9 +1,9 @@
 ;shared lib function call
 
 ;fn name
+blo 111 ;o
+blo 111 ;o
 blo 102 ;f
-blo 111 ;o
-blo 111 ;o
 srn 3
 
 ;arg 1
@@ -16,6 +16,31 @@ srn 4
 srn 2
 
 ;arg 2
+blo 3
+blo 55
+blo 38
+blo 16
+blo 41
+blo 19
+blo 1
+blo 52
+blo 19
+blo 16
+blo 16
+blo 15
+blo 8
+srn 12
+srn 2
+
+; arg 3
+blo 4
+blo 111 ;o
+blo 111 ;o
+blo 102 ;f
+srn 3
+srn 2
+
+;arg 4
 blo 0 ;f32, 4.2 le
 blo 102
 blo 102
@@ -24,8 +49,18 @@ blo 64
 srn 4
 srn 2
 
-;surround args
+;arg 5
+blo 1 ;char awascii
+blo 1
 srn 2
+
+;arg 6
+blo 2 ;char ascii
+blo 97
+srn 2
+
+;surround args
+srn 6
 
 ;pass fn names and args
 srn 2

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use libloading::{Library, Symbol};
 
-use crate::interpreter::Bubble;
+use crate::{interpreter::Bubble, AWA_SCII};
 
 pub fn parse_fn_name(data: &[u8]) -> String {
     String::from_utf8(data.to_vec()).unwrap()
@@ -23,7 +23,34 @@ pub fn parse_fn_args(bubble: &Bubble) -> Vec<u8> {
                 let byte_array = bubbles[1].to_u8_array();
                 args.extend_from_slice(&byte_array);
             }
-            _ => {}
+            // awascii c har
+            0x1 => {
+                let char = AWA_SCII.chars().nth(bubbles[1].get_val() as usize).unwrap();
+                args.push(char as u8);
+            }
+            // ascii char
+            0x2 => {
+                args.push(bubbles[1].get_val() as u8);
+            }
+            // awascii string
+            0x3 => {
+                let mut new_string = String::new();
+                for b in bubbles[1].get_bubbles().iter().rev() {
+                    new_string.push(AWA_SCII.chars().nth(b.get_val() as usize).unwrap());
+                }
+                args.extend_from_slice(new_string.as_bytes());
+                args.push('\0' as u8)
+            }
+            // ascii string
+            0x4 => {
+                for b in bubbles[1].get_bubbles().iter().rev() {
+                    args.push(b.get_val() as u8);
+                }
+                args.push('\0' as u8)
+            }
+            _ => {
+                panic!("Invalid argument type provided: {}.", arg_type);
+            }
         }
     }
 
