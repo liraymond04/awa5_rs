@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{dynlib::{self, call_lib_fn}, Awatism, AWA_SCII};
+use crate::{
+    dynlib::{self, call_lib_fn},
+    Awatism, AWA_SCII,
+};
 
 #[derive(Debug)]
 struct Instruction {
@@ -88,18 +91,16 @@ impl BubbleAbyss {
     }
 }
 
-pub fn interpet_object(object_vec: Vec<u8>) {
+pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
     let mut label_map: HashMap<u8, usize> = HashMap::new();
     let mut instructions: Vec<Instruction> = Vec::new();
 
     let mut bubble_abyss = BubbleAbyss::new();
 
-    // TODO optional pass lib/ dir and load
-    // all shared libraries in path, and handle
-    // cross platform libs like Windows DLLs
-    //
-    // --lib <path>
-    let libs = dynlib::load_libs(&["./examples/lib/libfoo.so"]);
+    let paths: Vec<&str> = path.split(';').collect();
+    let lib_paths = dynlib::get_shared_library_paths(&paths);
+    let lib_paths_str: Vec<&str> = lib_paths.iter().map(AsRef::as_ref).collect();
+    let libs = dynlib::load_libs(&lib_paths_str);
 
     // create label map
     for (index, chunk) in object_vec.chunks_exact(2).enumerate() {

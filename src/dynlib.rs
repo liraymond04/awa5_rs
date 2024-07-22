@@ -1,9 +1,15 @@
 use core::panic;
-use std::collections::HashMap;
+use std::{collections::HashMap, fs, path::PathBuf};
 
 use libloading::{Library, Symbol};
 
 use crate::{interpreter::Bubble, AWA_SCII};
+
+#[cfg(target_os = "windows")]
+const LIB_EXTENSION: &str = "dll";
+
+#[cfg(not(target_os = "windows"))]
+const LIB_EXTENSION: &str = "so";
 
 pub fn parse_fn_name(data: &[u8]) -> String {
     String::from_utf8(data.to_vec()).unwrap()
@@ -56,6 +62,30 @@ pub fn parse_fn_args(bubble: &Bubble) -> Vec<u8> {
 
     args
 }
+
+pub fn get_shared_library_paths(lib_dirs: &[&str]) -> Vec<String> {
+    let mut lib_paths = Vec::new();
+
+    for dir in lib_dirs {
+        if let Ok(entries) = fs::read_dir(dir) {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path: PathBuf = entry.path();
+                    if let Some(extension) = path.extension() {
+                        if extension == LIB_EXTENSION {
+                            if let Some(path_str) = path.to_str() {
+                                lib_paths.push(path_str.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    lib_paths
+}
+
 
 pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
     let mut libs = HashMap::new();

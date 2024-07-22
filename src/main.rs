@@ -137,6 +137,13 @@ fn main() {
                 .long("awa")
                 .help("Parse string as awatalk")
                 .num_args(0),
+        )
+        .arg(
+            Arg::new("path")
+                .short('p')
+                .long("path")
+                .help("Search paths separated by ';' for shared libraries")
+                .num_args(1),
         );
 
     let matches = cmd.clone().get_matches();
@@ -147,6 +154,12 @@ fn main() {
         );
         cmd.print_help().unwrap();
         std::process::exit(1);
+    }
+
+    let mut path = "/usr/local/lib";
+
+    if matches.contains_id("path") {
+        path = matches.get_one::<String>("path").unwrap();
     }
 
     if matches.contains_id("input") {
@@ -183,7 +196,7 @@ fn main() {
                         _ => {}
                     }
                 } else {
-                    interpet_object(object_vec);
+                    interpet_object(object_vec, path);
                 }
             }
             "awa" => {
@@ -214,7 +227,7 @@ fn main() {
                         _ => {}
                     }
                 } else {
-                    interpet_object(object_vec);
+                    interpet_object(object_vec, path);
                 }
             }
             "o" => match read_binary_file(input_file) {
@@ -241,7 +254,7 @@ fn main() {
                             _ => {}
                         }
                     } else {
-                        interpet_object(binary_data);
+                        interpet_object(binary_data, path);
                     }
                 }
                 Err(err) => {
@@ -301,7 +314,7 @@ fn main() {
                     _ => {}
                 }
             } else {
-                interpet_object(object_vec);
+                interpet_object(object_vec, path);
             }
         }
 
@@ -332,7 +345,7 @@ fn main() {
                     _ => {}
                 }
             } else {
-                interpet_object(object_vec);
+                interpet_object(object_vec, path);
             }
         }
     }
