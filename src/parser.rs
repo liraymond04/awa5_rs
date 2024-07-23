@@ -166,14 +166,36 @@ pub mod awasm {
         }
         let string_content = &string_content[1..string_content.len() - 1];
 
-        for c in string_content.chars().rev() {
+        let mut temp_res = Vec::new();
+        for c in string_content.chars() {
             if awascii {
-                res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
+                temp_res.push(Awatism::Blo(AWA_SCII.find(c).unwrap() as u8));
             } else {
-                res.push(Awatism::Blo(c as u8));
+                temp_res.push(Awatism::Blo(c as u8));
             }
         }
-        res.push(Awatism::Srn(res.len() as u8));
+
+        let mut i = 0;
+        let chunk_size = 31; // max allowed value of u5 for srn arg
+        while !temp_res.is_empty() {
+            let len = temp_res.len();
+            let end = if len > chunk_size {
+                len - chunk_size
+            } else {
+                0
+            };
+
+            for _ in end..len {
+                res.push(temp_res.pop().unwrap());
+            }
+
+            res.push(Awatism::Srn((len - end) as u8));
+
+            if i > 0 {
+                res.push(Awatism::Mrg);
+            }
+            i += 1;
+        }
 
         (res, awascii)
     }

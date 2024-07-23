@@ -1,6 +1,6 @@
 [package]
 name = "awa5_rs"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2021"
 description = "An AWA5.0 CLI tool written in Rust (btw)"
 license = "GPL-3.0-or-later"
