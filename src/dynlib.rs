@@ -1,5 +1,5 @@
 use core::panic;
-use std::{collections::HashMap, fs, path::PathBuf};
+use std::{collections::HashMap, fs, path::PathBuf, ptr};
 
 use libloading::{Library, Symbol};
 
@@ -54,6 +54,11 @@ pub fn parse_fn_args(bubble: &Bubble) -> Vec<u8> {
                 }
                 args.push('\0' as u8)
             }
+            // simple bubble value
+            0x5 => {
+                let byte_array = bubbles[1].get_val().to_le_bytes();
+                args.extend_from_slice(&byte_array);
+            }
             _ => {
                 panic!("Invalid argument type provided: {}.", arg_type);
             }
@@ -86,7 +91,6 @@ pub fn get_shared_library_paths(lib_dirs: &[&str]) -> Vec<String> {
     lib_paths
 }
 
-
 pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
     let mut libs = HashMap::new();
 
@@ -98,14 +102,22 @@ pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
     libs
 }
 
-pub fn call_lib_fn(libs: &HashMap<String, Library>, fn_name: &str, args: Vec<u8>) {
+pub fn call_lib_fn(libs: &HashMap<String, Library>, fn_name: &str, args: Vec<u8>) -> Vec<u8> {
+    let mut buffer: *mut u8 = ptr::null_mut();
+    let mut buffer_len: usize = 0;
+
     for (_path, lib) in libs {
         unsafe {
-            if let Ok(f) =
-                lib.get::<Symbol<unsafe extern "C" fn(*const u8, usize)>>(fn_name.as_bytes())
+            if let Ok(f) = lib
+                .get::<Symbol<unsafe extern "C" fn(*const u8, *mut *mut u8, *mut usize)>>(
+                    fn_name.as_bytes(),
+                )
             {
-                f(args.as_ptr(), args.len());
-                return;
+                f(args.as_ptr(), &mut buffer, &mut buffer_len);
+                if !buffer.is_null() {
+                    return Vec::from_raw_parts(buffer, buffer_len, buffer_len);
+                }
+                return vec![];
             }
         }
     }

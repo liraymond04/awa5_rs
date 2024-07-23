@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-void foo(const uint8_t* data, size_t length)
+void foo(const uint8_t *data, uint8_t **out, size_t *out_len)
 {
     int32_t a;
     float b;
@@ -34,4 +35,8 @@ void foo(const uint8_t* data, size_t length)
 
     printf("Got number: %d %f\n", a, b);
     printf("%c %c\n", c, d);
+
+    *out = (uint8_t *)malloc(sizeof(uint8_t));
+    (*out)[0] = 1;
+    *out_len = sizeof(uint8_t);
 }

@@ -318,10 +318,16 @@ pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
                         let fn_name = dynlib::parse_fn_name(&fn_name);
 
                         if bubbles.len() == 1 {
-                            call_lib_fn(&libs, &fn_name, vec![]);
+                            let buffer = call_lib_fn(&libs, &fn_name, vec![]);
+                            for b in buffer {
+                                bubble_abyss.push(Bubble::Simple(b as i32));
+                            }
                         } else {
                             let fn_args = dynlib::parse_fn_args(&bubbles[1]);
-                            call_lib_fn(&libs, &fn_name, fn_args);
+                            let buffer = call_lib_fn(&libs, &fn_name, fn_args);
+                            for b in buffer {
+                                bubble_abyss.push(Bubble::Simple(b as i32));
+                            }
                         }
                     }
                 }
