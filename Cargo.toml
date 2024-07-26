@@ -1,8 +1,10 @@
 [package]
 name = "awa5_rs"
-version = "0.1.11"
+version = "0.1.12"
 edition = "2021"
 description = "An AWA5.0 CLI tool written in Rust (btw)"
+keywords = ["esolang", "awa5_rs", "awatalk"]
+categories = ["command-line-interface", "compilers"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/liraymond04/awa5_rs"
 
