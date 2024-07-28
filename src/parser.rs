@@ -28,9 +28,15 @@ pub mod awasm {
     type MacroFn = fn(&str) -> MacroResult;
 
     #[derive(Debug)]
+    struct UserMacro {
+        args: Vec<String>,
+        lines: Vec<String>,
+    }
+
+    #[derive(Debug)]
     struct MacroTable {
         builtins: HashMap<String, MacroFn>,
-        user_def: HashMap<String, Vec<Awatism>>,
+        user_def: HashMap<String, UserMacro>,
     }
 
     impl MacroTable {
@@ -82,12 +88,30 @@ pub mod awasm {
             self.builtins.get(key).copied()
         }
 
-        fn add_user_def(&mut self, key: &str, replace: Vec<Awatism>) {
-            self.user_def.insert(key.to_string(), replace);
+        fn add_user_def(&mut self, key: &str, args: Vec<String>, lines: Vec<String>) {
+            self.user_def
+                .insert(key.to_string(), UserMacro { args, lines });
         }
 
-        fn get_user_def(&self, key: &str) -> Option<&Vec<Awatism>> {
+        fn get_user_def(&self, key: &str) -> Option<&UserMacro> {
             self.user_def.get(key)
+        }
+    }
+
+    fn parse_function_call(s: &str) -> (&str, Vec<String>) {
+        if let Some(pos) = s.find('(') {
+            let function_name = &s[..pos];
+
+            let args_str = &s[pos + 1..s.len() - 1];
+
+            let args: Vec<String> = args_str
+                .split(',')
+                .map(|arg| arg.trim().to_string())
+                .collect();
+
+            (function_name, args)
+        } else {
+            (s, Vec::new())
         }
     }
 
@@ -95,7 +119,7 @@ pub mod awasm {
         let mut macro_table = MacroTable::new();
         let mut result = vec![];
         let mut defining = false;
-        let mut define_name = String::new();
+        let mut define_str = String::new();
         let mut cur_macro = vec![];
 
         for line in lines {
@@ -109,19 +133,20 @@ pub mod awasm {
 
             if tokens[0] == "!def" {
                 defining = true;
-                define_name = tokens[1].to_string();
+                define_str = tokens[1].to_string();
                 continue;
             }
 
             if tokens[0] == "!end" {
                 defining = false;
-                macro_table.add_user_def(&define_name, cur_macro);
+                let (define_name, define_args) = parse_function_call(&define_str);
+                macro_table.add_user_def(&define_name, define_args, cur_macro);
                 cur_macro = vec![];
                 continue;
             }
 
             if defining {
-                cur_macro.extend(parse_line(&macro_table, &tokens));
+                cur_macro.push(trimmed.to_string());
                 continue;
             }
 
@@ -134,6 +159,25 @@ pub mod awasm {
             .collect()
     }
 
+    fn expand_macro(macro_table: &MacroTable, _macro: &UserMacro, args: Vec<&str>) -> Vec<Awatism> {
+        let mut res = vec![];
+        for line in &_macro.lines {
+            let mut expanded_line = line.to_string();
+            for i in 0..args.len() {
+                let arg_name = &_macro.args[i];
+                let arg_val = args[i].trim();
+                let placeholder = format!("${}", arg_name);
+                expanded_line = expanded_line.replace(&placeholder, arg_val);
+            }
+
+            let line_without_comments = expanded_line.split(';').next().unwrap_or("");
+            let trimmed = line_without_comments.trim();
+            let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
+            res.extend(parse_line(macro_table, &tokens));
+        }
+        res
+    }
+
     fn parse_line(macro_table: &MacroTable, tokens: &Vec<&str>) -> Vec<Awatism> {
         // is macro
         if tokens[0].starts_with("!") {
@@ -142,8 +186,19 @@ pub mod awasm {
                     return process_fn(tokens[1]).get_vec();
                 }
             } else {
-                if let Some(macro_lines) = macro_table.get_user_def(&tokens[0][1..]) {
-                    return macro_lines.clone();
+                if let Some(_macro) = macro_table.get_user_def(&tokens[0][1..]) {
+                    let args: Vec<&str> = tokens[1].split(',').collect();
+                    if _macro.args.len() != args.len() {
+                        panic!(
+                            "Macro !{} expected {} arguments, received {}",
+                            &tokens[0][1..],
+                            _macro.args.len(),
+                            args.len()
+                        );
+                    }
+                    return expand_macro(macro_table, _macro, args);
+                } else {
+                    panic!("Macro !{} not found", &tokens[0][1..]);
                 }
             }
         }

@@ -1,11 +1,11 @@
-!def bruh
-blo 1
-prn
+!def foo(val, bar)
+blo $val
+$bar
 !end
 
-!bruh
-!bruh
-!bruh
+!foo 1, prn
+!foo 1, prn
+!foo 1, prn
 
 blo 63
 prn
