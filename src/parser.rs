@@ -1,6 +1,11 @@
 pub mod awasm {
     use core::panic;
-    use std::collections::HashMap;
+    use std::{
+        collections::HashMap,
+        fs::File,
+        io::{self, BufRead},
+        path::Path,
+    };
 
     use crate::{Awatism, Instruction, AWA_SCII};
 
@@ -34,13 +39,13 @@ pub mod awasm {
     }
 
     #[derive(Debug)]
-    struct MacroTable {
+    pub struct MacroTable {
         builtins: HashMap<String, MacroFn>,
         user_def: HashMap<String, UserMacro>,
     }
 
     impl MacroTable {
-        fn new() -> Self {
+        pub fn new() -> Self {
             let mut table = MacroTable {
                 builtins: HashMap::new(),
                 user_def: HashMap::new(),
@@ -115,8 +120,11 @@ pub mod awasm {
         }
     }
 
-    pub fn parse_lines(lines: impl Iterator<Item = String>) -> Vec<Instruction> {
-        let mut macro_table = MacroTable::new();
+    pub fn parse_lines(
+        macro_table: &mut MacroTable,
+        lines: impl Iterator<Item = String>,
+        include_paths: &str,
+    ) -> Vec<Instruction> {
         let mut result = vec![];
         let mut defining = false;
         let mut define_str = String::new();
@@ -128,6 +136,11 @@ pub mod awasm {
             let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
 
             if tokens.is_empty() || trimmed.starts_with(';') {
+                continue;
+            }
+
+            if tokens[0] == "!include" {
+                result.extend(include_file(macro_table, include_paths, tokens[1]));
                 continue;
             }
 
@@ -157,25 +170,6 @@ pub mod awasm {
             .into_iter()
             .map(|a| Instruction { awatism: a })
             .collect()
-    }
-
-    fn expand_macro(macro_table: &MacroTable, _macro: &UserMacro, args: Vec<&str>) -> Vec<Awatism> {
-        let mut res = vec![];
-        for line in &_macro.lines {
-            let mut expanded_line = line.to_string();
-            for i in 0..args.len() {
-                let arg_name = &_macro.args[i];
-                let arg_val = args[i].trim();
-                let placeholder = format!("${}", arg_name);
-                expanded_line = expanded_line.replace(&placeholder, arg_val);
-            }
-
-            let line_without_comments = expanded_line.split(';').next().unwrap_or("");
-            let trimmed = line_without_comments.trim();
-            let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
-            res.extend(parse_line(macro_table, &tokens));
-        }
-        res
     }
 
     fn parse_line(macro_table: &MacroTable, tokens: &Vec<&str>) -> Vec<Awatism> {
@@ -246,6 +240,70 @@ pub mod awasm {
         };
 
         awatism
+    }
+
+    fn parse_include_paths(include_paths: &str) -> Vec<&str> {
+        include_paths.split(';').collect()
+    }
+
+    fn find_and_read_file(relative_path: &str, paths: &[&str]) -> io::Result<Option<Vec<String>>> {
+        for path in paths {
+            let full_path = Path::new(path).join(relative_path);
+            if full_path.exists() {
+                let file = File::open(full_path)?;
+                let lines: Vec<String> = io::BufReader::new(file)
+                    .lines()
+                    .filter_map(Result::ok)
+                    .collect();
+                return Ok(Some(lines));
+            }
+        }
+        Ok(None)
+    }
+
+    fn include_file(
+        macro_table: &mut MacroTable,
+        include_paths: &str,
+        path_str: &str,
+    ) -> Vec<Awatism> {
+        let replaced_string = path_str.replace("\\n", "\n");
+        let path = replaced_string.trim();
+
+        if path.chars().nth(0).unwrap() != '<' {
+            panic!("Missing opening \"<\"");
+        }
+        if path.len() == 1 || path.chars().nth_back(0).unwrap() != '>' {
+            panic!("Missing closing \">\"");
+        }
+        let path = &path[1..path.len() - 1];
+
+        let paths = parse_include_paths(include_paths);
+
+        if let Some(lines) = find_and_read_file(path, &paths).unwrap() {
+            let instructions = parse_lines(macro_table, lines.into_iter(), include_paths);
+            instructions.into_iter().map(|i| i.awatism).collect()
+        } else {
+            panic!("Awasm source file {} not found", path);
+        }
+    }
+
+    fn expand_macro(macro_table: &MacroTable, _macro: &UserMacro, args: Vec<&str>) -> Vec<Awatism> {
+        let mut res = vec![];
+        for line in &_macro.lines {
+            let mut expanded_line = line.to_string();
+            for i in 0..args.len() {
+                let arg_name = &_macro.args[i];
+                let arg_val = args[i].trim();
+                let placeholder = format!("${}", arg_name);
+                expanded_line = expanded_line.replace(&placeholder, arg_val);
+            }
+
+            let line_without_comments = expanded_line.split(';').next().unwrap_or("");
+            let trimmed = line_without_comments.trim();
+            let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
+            res.extend(parse_line(macro_table, &tokens));
+        }
+        res
     }
 
     fn process_i32(token: &str) -> MacroResult {

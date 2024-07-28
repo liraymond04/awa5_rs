@@ -98,7 +98,7 @@ impl Awatism {
 
 #[derive(Debug)]
 pub struct Instruction {
-    awatism: Awatism,
+    pub awatism: Awatism,
 }
 
 pub static AWA_SCII: &str = "AWawJELYHOSIUMjelyhosiumPCNTpcntBDFGRbdfgr0123456789 .,!'()~_/;\n";

@@ -48,6 +48,13 @@ fn main() {
                 .long("path")
                 .help("Search paths separated by ';' for shared libraries")
                 .num_args(1),
+        )
+        .arg(
+            Arg::new("include")
+                .short('i')
+                .long("include")
+                .help("Include paths separated by ';' for source files")
+                .num_args(1),
         );
 
     let matches = cmd.clone().get_matches();
@@ -61,9 +68,14 @@ fn main() {
     }
 
     let mut path = "/usr/local/lib";
+    let mut include_paths = "";
 
     if matches.contains_id("path") {
         path = matches.get_one::<String>("path").unwrap();
+    }
+
+    if matches.contains_id("include") {
+        include_paths = matches.get_one::<String>("include").unwrap();
     }
 
     if matches.contains_id("input") {
@@ -75,7 +87,8 @@ fn main() {
             "awasm" => {
                 let lines = read_lines(input_file).unwrap();
 
-                let instructions = parser::awasm::parse_lines(lines);
+                let mut macro_table = parser::awasm::MacroTable::new();
+                let instructions = parser::awasm::parse_lines(&mut macro_table, lines, include_paths);
 
                 let object_vec = assembler::make_object_vec(&instructions);
 
@@ -192,7 +205,8 @@ fn main() {
         if matches.get_flag("awasm") {
             let lines = input_string.lines().map(|line| line.to_string());
 
-            let instructions = parser::awasm::parse_lines(lines);
+            let mut macro_table = parser::awasm::MacroTable::new();
+            let instructions = parser::awasm::parse_lines(&mut macro_table, lines, include_paths);
 
             let object_vec = assembler::make_object_vec(&instructions);
 
@@ -254,3 +268,4 @@ fn main() {
         }
     }
 }
+

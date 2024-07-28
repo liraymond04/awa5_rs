@@ -1,3 +1,5 @@
+!include <examples/awasm/hello_world.awasm>
+
 !def foo(val, bar)
 blo $val
 $bar

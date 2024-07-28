@@ -60,6 +60,7 @@ Options:
       --awasm            Parse string as awasm
       --awa              Parse string as awatalk
   -p, --path <path>      Search paths separated by ';' for shared libraries
+  -i, --include <include>  Include paths separated by ';' for source files
   -h, --help             Print help
   -V, --version          Print version
 ```
