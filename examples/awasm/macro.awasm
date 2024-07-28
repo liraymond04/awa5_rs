@@ -1,4 +1,4 @@
-!include <examples/awasm/hello_world.awasm>
+!include <hello_world.awasm>
 
 !def foo(val, bar)
 blo $val
@@ -6,8 +6,8 @@ $bar
 !end
 
 !foo 1, prn
-!foo 1, prn
-!foo 1, prn
+!foo 2, prn
+!foo 3, prn
 
 blo 63
 prn

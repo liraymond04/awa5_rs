@@ -1,7 +1,7 @@
 pub mod awasm {
     use core::panic;
     use std::{
-        collections::HashMap,
+        collections::{HashMap, HashSet},
         fs::File,
         io::{self, BufRead},
         path::Path,
@@ -122,8 +122,10 @@ pub mod awasm {
 
     pub fn parse_lines(
         macro_table: &mut MacroTable,
-        lines: impl Iterator<Item = String>,
+        already_included: &mut HashSet<String>,
         include_paths: &str,
+        current_path: &str,
+        lines: impl Iterator<Item = String>,
     ) -> Vec<Instruction> {
         let mut result = vec![];
         let mut defining = false;
@@ -139,8 +141,20 @@ pub mod awasm {
                 continue;
             }
 
+            if tokens[0] == "!once" {
+                if already_included.contains(current_path) {
+                    break;
+                }
+                continue;
+            }
+
             if tokens[0] == "!include" {
-                result.extend(include_file(macro_table, include_paths, tokens[1]));
+                result.extend(include_file(
+                    macro_table,
+                    already_included,
+                    include_paths,
+                    tokens[1],
+                ));
                 continue;
             }
 
@@ -263,6 +277,7 @@ pub mod awasm {
 
     fn include_file(
         macro_table: &mut MacroTable,
+        already_included: &mut HashSet<String>,
         include_paths: &str,
         path_str: &str,
     ) -> Vec<Awatism> {
@@ -280,7 +295,14 @@ pub mod awasm {
         let paths = parse_include_paths(include_paths);
 
         if let Some(lines) = find_and_read_file(path, &paths).unwrap() {
-            let instructions = parse_lines(macro_table, lines.into_iter(), include_paths);
+            let instructions = parse_lines(
+                macro_table,
+                already_included,
+                include_paths,
+                path,
+                lines.into_iter(),
+            );
+            already_included.insert(path.to_string());
             instructions.into_iter().map(|i| i.awatism).collect()
         } else {
             panic!("Awasm source file {} not found", path);

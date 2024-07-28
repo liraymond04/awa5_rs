@@ -3,6 +3,7 @@ extern crate clap;
 use awa5_rs::*;
 
 use clap::{Arg, Command};
+use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
@@ -88,7 +89,14 @@ fn main() {
                 let lines = read_lines(input_file).unwrap();
 
                 let mut macro_table = parser::awasm::MacroTable::new();
-                let instructions = parser::awasm::parse_lines(&mut macro_table, lines, include_paths);
+                let mut already_included: HashSet<String> = HashSet::new();
+                let instructions = parser::awasm::parse_lines(
+                    &mut macro_table,
+                    &mut already_included,
+                    include_paths,
+                    "",
+                    lines,
+                );
 
                 let object_vec = assembler::make_object_vec(&instructions);
 
@@ -206,7 +214,14 @@ fn main() {
             let lines = input_string.lines().map(|line| line.to_string());
 
             let mut macro_table = parser::awasm::MacroTable::new();
-            let instructions = parser::awasm::parse_lines(&mut macro_table, lines, include_paths);
+            let mut already_included: HashSet<String> = HashSet::new();
+            let instructions = parser::awasm::parse_lines(
+                &mut macro_table,
+                &mut already_included,
+                include_paths,
+                "",
+                lines,
+            );
 
             let object_vec = assembler::make_object_vec(&instructions);
 
