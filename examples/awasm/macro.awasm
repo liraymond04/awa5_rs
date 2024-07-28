@@ -1,0 +1,11 @@
+!def bruh
+blo 1
+prn
+!end
+
+!bruh
+!bruh
+!bruh
+
+blo 63
+prn

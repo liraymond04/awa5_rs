@@ -14,7 +14,7 @@ use std::fs::File;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Awatism {
     Nop,
     Prn,

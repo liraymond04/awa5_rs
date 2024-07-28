@@ -1,19 +1,151 @@
 pub mod awasm {
     use core::panic;
+    use std::collections::HashMap;
 
     use crate::{Awatism, Instruction, AWA_SCII};
 
-    pub fn parse_lines(lines: impl Iterator<Item = String>) -> Vec<Instruction> {
-        lines.flat_map(|line| parse_line(&line)).collect()
+    enum MacroResult {
+        VecOnly(Vec<Awatism>),
+        VecAndBool(Vec<Awatism>, bool),
     }
 
-    pub fn parse_line(line: &str) -> Vec<Instruction> {
-        let line_without_comments = line.split(';').next().unwrap_or("");
-        let trimmed = line_without_comments.trim();
-        let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
+    impl MacroResult {
+        fn get_vec(&self) -> Vec<Awatism> {
+            match self {
+                MacroResult::VecOnly(v) => v.to_owned(),
+                MacroResult::VecAndBool(v, _) => v.to_owned(),
+            }
+        }
 
-        if tokens.is_empty() || trimmed.starts_with(';') {
-            return vec![];
+        fn get_vec_and_bool(&self) -> (Vec<Awatism>, bool) {
+            match self {
+                MacroResult::VecOnly(v) => (v.to_owned(), false),
+                MacroResult::VecAndBool(v, b) => (v.to_owned(), *b),
+            }
+        }
+    }
+
+    type MacroFn = fn(&str) -> MacroResult;
+
+    #[derive(Debug)]
+    struct MacroTable {
+        builtins: HashMap<String, MacroFn>,
+        user_def: HashMap<String, Vec<Awatism>>,
+    }
+
+    impl MacroTable {
+        fn new() -> Self {
+            let mut table = MacroTable {
+                builtins: HashMap::new(),
+                user_def: HashMap::new(),
+            };
+
+            table.builtins.insert("!i32".to_string(), process_i32);
+            table.builtins.insert("!f32".to_string(), process_f32);
+            table.builtins.insert("!chr".to_string(), process_chr);
+            table.builtins.insert("!str".to_string(), process_str);
+            table.builtins.insert("!_i32".to_string(), |token| {
+                let mut res = vec![Awatism::Blo(0x0)];
+                res.extend(process_i32(token).get_vec());
+                res.push(Awatism::Srn(2));
+                MacroResult::VecOnly(res)
+            });
+            table.builtins.insert("!_f32".to_string(), |token| {
+                let mut res = vec![Awatism::Blo(0x0)];
+                res.extend(process_f32(token).get_vec());
+                res.push(Awatism::Srn(2));
+                MacroResult::VecOnly(res)
+            });
+            table.builtins.insert("!_chr".to_string(), |token| {
+                let (process, awascii) = process_chr(token).get_vec_and_bool();
+                let mut res = vec![Awatism::Blo(if awascii { 0x1 } else { 0x2 })];
+                res.extend(process);
+                res.push(Awatism::Srn(2));
+                MacroResult::VecAndBool(res, awascii)
+            });
+            table.builtins.insert("!_str".to_string(), |token| {
+                let (process, awascii) = process_str(token).get_vec_and_bool();
+                let mut res = vec![Awatism::Blo(if awascii { 0x3 } else { 0x4 })];
+                res.extend(process);
+                res.push(Awatism::Srn(2));
+                MacroResult::VecAndBool(res, awascii)
+            });
+
+            table
+        }
+
+        fn is_builtin(&self, key: &str) -> bool {
+            self.builtins.contains_key(key)
+        }
+
+        fn get_builtin(&self, key: &str) -> Option<MacroFn> {
+            self.builtins.get(key).copied()
+        }
+
+        fn add_user_def(&mut self, key: &str, replace: Vec<Awatism>) {
+            self.user_def.insert(key.to_string(), replace);
+        }
+
+        fn get_user_def(&self, key: &str) -> Option<&Vec<Awatism>> {
+            self.user_def.get(key)
+        }
+    }
+
+    pub fn parse_lines(lines: impl Iterator<Item = String>) -> Vec<Instruction> {
+        let mut macro_table = MacroTable::new();
+        let mut result = vec![];
+        let mut defining = false;
+        let mut define_name = String::new();
+        let mut cur_macro = vec![];
+
+        for line in lines {
+            let line_without_comments = line.split(';').next().unwrap_or("");
+            let trimmed = line_without_comments.trim();
+            let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
+
+            if tokens.is_empty() || trimmed.starts_with(';') {
+                continue;
+            }
+
+            if tokens[0] == "!def" {
+                defining = true;
+                define_name = tokens[1].to_string();
+                continue;
+            }
+
+            if tokens[0] == "!end" {
+                defining = false;
+                macro_table.add_user_def(&define_name, cur_macro);
+                cur_macro = vec![];
+                continue;
+            }
+
+            if defining {
+                cur_macro.extend(parse_line(&macro_table, &tokens));
+                continue;
+            }
+
+            result.extend(parse_line(&macro_table, &tokens));
+        }
+
+        result
+            .into_iter()
+            .map(|a| Instruction { awatism: a })
+            .collect()
+    }
+
+    fn parse_line(macro_table: &MacroTable, tokens: &Vec<&str>) -> Vec<Awatism> {
+        // is macro
+        if tokens[0].starts_with("!") {
+            if macro_table.is_builtin(tokens[0]) {
+                if let Some(process_fn) = macro_table.get_builtin(tokens[0]) {
+                    return process_fn(tokens[1]).get_vec();
+                }
+            } else {
+                if let Some(macro_lines) = macro_table.get_user_def(&tokens[0][1..]) {
+                    return macro_lines.clone();
+                }
+            }
         }
 
         let awatism = match tokens[0] {
@@ -55,65 +187,33 @@ pub mod awasm {
             "gr8" if tokens.len() == 1 => vec![Awatism::Gr8],
             "lib" if tokens.len() == 1 => vec![Awatism::Lib],
             "trm" if tokens.len() == 1 => vec![Awatism::Trm],
-            // special macros
-            "!i32" if tokens.len() == 2 => process_i32(tokens[1].parse().ok().unwrap()),
-            "!f32" if tokens.len() == 2 => process_f32(tokens[1].parse().ok().unwrap()),
-            "!chr" if tokens.len() == 2 => process_chr(tokens[1]).0,
-            "!str" if tokens.len() == 2 => process_str(tokens[1]).0,
-            "!_i32" if tokens.len() == 2 => {
-                let mut res = vec![Awatism::Blo(0x0)];
-                res.extend(process_i32(tokens[1].parse().ok().unwrap()));
-                res.push(Awatism::Srn(2));
-                res
-            }
-            "!_f32" if tokens.len() == 2 => {
-                let mut res = vec![Awatism::Blo(0x0)];
-                res.extend(process_f32(tokens[1].parse().ok().unwrap()));
-                res.push(Awatism::Srn(2));
-                res
-            }
-            "!_chr" if tokens.len() == 2 => {
-                let (process, awascii) = process_chr(tokens[1]);
-                let mut res = vec![Awatism::Blo(if awascii { 0x1 } else { 0x2 })];
-                res.extend(process);
-                res.push(Awatism::Srn(2));
-                res
-            }
-            "!_str" if tokens.len() == 2 => {
-                let (process, awascii) = process_str(tokens[1]);
-                let mut res = vec![Awatism::Blo(if awascii { 0x3 } else { 0x4 })];
-                res.extend(process);
-                res.push(Awatism::Srn(2));
-                res
-            }
             _ => vec![],
         };
 
         awatism
-            .into_iter()
-            .map(|a| Instruction { awatism: a })
-            .collect()
     }
 
-    fn process_i32(value: i32) -> Vec<Awatism> {
+    fn process_i32(token: &str) -> MacroResult {
+        let value = token.parse().ok().unwrap();
         let mut res = Vec::new();
         for byte in i32::to_le_bytes(value) {
             res.push(Awatism::Blo(byte));
         }
         res.push(Awatism::Srn(4));
-        res
+        MacroResult::VecOnly(res)
     }
 
-    fn process_f32(value: f32) -> Vec<Awatism> {
+    fn process_f32(token: &str) -> MacroResult {
+        let value = token.parse().ok().unwrap();
         let mut res = Vec::new();
         for byte in f32::to_le_bytes(value) {
             res.push(Awatism::Blo(byte));
         }
         res.push(Awatism::Srn(4));
-        res
+        MacroResult::VecOnly(res)
     }
 
-    fn process_chr(string_content: &str) -> (Vec<Awatism>, bool) {
+    fn process_chr(string_content: &str) -> MacroResult {
         let mut res = Vec::new();
         let replaced_string = string_content.replace("\\n", "\n");
         let mut string_content = replaced_string.trim();
@@ -144,10 +244,10 @@ pub mod awasm {
             res.push(Awatism::Blo(c as u8));
         }
 
-        (res, awascii)
+        MacroResult::VecAndBool(res, awascii)
     }
 
-    fn process_str(string_content: &str) -> (Vec<Awatism>, bool) {
+    fn process_str(string_content: &str) -> MacroResult {
         let mut res = Vec::new();
         let replaced_string = string_content.replace("\\n", "\n");
         let mut string_content = replaced_string.trim();
@@ -197,7 +297,7 @@ pub mod awasm {
             i += 1;
         }
 
-        (res, awascii)
+        MacroResult::VecAndBool(res, awascii)
     }
 }
 
