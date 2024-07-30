@@ -336,11 +336,29 @@ pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
                 break;
             }
             // special awatism
-            Awatism::LblRel => {
-                println!("hi");
+            Awatism::StrLbl(_str_label) => {
+                // only used to calculate position of relative jump from awasm label
+            }
+            Awatism::JmpRelStr(_) => {
+                // only used to calculate position of relative jump from awasm label
             }
             Awatism::JmpRel => {
-                println!("ho");
+                let top = bubble_abyss.top().unwrap();
+
+                // is i32 if is double
+                match top {
+                    Bubble::Simple(val) => {
+                        index = (index as i32 + *val) as usize;
+                    }
+                    Bubble::Double(bubbles) => {
+                        let mut val = vec![];
+                        for bubble in bubbles {
+                            val.push(bubble.get_val() as u8);
+                        }
+                        let val = i32::from_le_bytes(<[u8; 4]>::try_from(val).unwrap());
+                        index = (index as i32 + val) as usize;
+                    }
+                }
             }
         }
 

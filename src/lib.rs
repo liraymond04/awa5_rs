@@ -40,8 +40,9 @@ pub enum Awatism {
     Lib,
     Trm,
     // special awatism
-    LblRel,
+    StrLbl(String),
     JmpRel,
+    JmpRelStr(String),
 }
 
 impl Awatism {
@@ -73,7 +74,6 @@ impl Awatism {
             0x17 => Some(Awatism::Lib),
             0x1F => Some(Awatism::Trm),
             // special awatism
-            0x90 => Some(Awatism::LblRel),
             0x91 => Some(Awatism::JmpRel),
             _ => None,
         }

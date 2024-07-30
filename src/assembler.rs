@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use crate::{Awatism, Instruction};
 
 pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
-    match instruction.awatism {
+    match &instruction.awatism {
         Awatism::Nop => {
             let bytes = vec![0x01, 0x00];
             bytes
@@ -23,11 +25,11 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
             bytes
         }
         Awatism::Blo(arg) => {
-            let bytes = vec![0x05, arg as u8];
+            let bytes = vec![0x05, *arg as u8];
             bytes
         }
         Awatism::Sbm(arg) => {
-            let bytes = vec![0x06, arg as u8];
+            let bytes = vec![0x06, *arg as u8];
             bytes
         }
         Awatism::Pop => {
@@ -39,7 +41,7 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
             bytes
         }
         Awatism::Srn(arg) => {
-            let bytes = vec![0x09, arg as u8];
+            let bytes = vec![0x09, *arg as u8];
             bytes
         }
         Awatism::Mrg => {
@@ -67,11 +69,11 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
             bytes
         }
         Awatism::Lbl(arg) => {
-            let bytes = vec![0x10, arg as u8];
+            let bytes = vec![0x10, *arg as u8];
             bytes
         }
         Awatism::Jmp(arg) => {
-            let bytes = vec![0x11, arg as u8];
+            let bytes = vec![0x11, *arg as u8];
             bytes
         }
         Awatism::Eql => {
@@ -95,15 +97,17 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
             bytes
         }
         // special awatism
-        Awatism::LblRel => {
-            // 00010000 - original lbl
-            // 10010000 - add bit to u8 to mark as relative jmp
-            let bytes = vec![0x90, 0x00];
-            bytes
+        Awatism::StrLbl(_str_label) => {
+            // only used to calculate position of relative jump from awasm label
+            vec![]
         }
         Awatism::JmpRel => {
             // 00010001 - original lbl
             // 10010001 - add bit to u8 to mark as relative jmp
+            let bytes = vec![0x91, 0x00];
+            bytes
+        }
+        Awatism::JmpRelStr(_) => {
             let bytes = vec![0x91, 0x00];
             bytes
         }
@@ -113,7 +117,41 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
 pub fn make_object_vec(instructions: &[Instruction]) -> Vec<u8> {
     let mut vec = Vec::new();
 
+    let mut labels: HashMap<String, usize> = HashMap::new();
+    let mut jumps: HashMap<String, usize> = HashMap::new();
+
+    let mut current: usize = 0;
     for instruction in instructions {
+        match &instruction.awatism {
+            Awatism::StrLbl(label) => {
+                labels.insert(label.to_string(), current);
+                current += 1;
+            }
+            Awatism::JmpRelStr(label) => {
+                current += 5;
+                jumps.insert(label.to_string(), current);
+            }
+            _ => {
+                current += 1;
+            }
+        }
+    }
+
+    for instruction in instructions {
+        match &instruction.awatism {
+            Awatism::JmpRelStr(label) => {
+                let mut res = Vec::new();
+                let label_pos = *labels.get(label).unwrap() as i32;
+                let current_pos = *jumps.get(label).unwrap() as i32;
+                let jump_val = label_pos - current_pos;
+                for byte in i32::to_le_bytes(jump_val as i32) {
+                    res.extend(vec![0x05, byte]); // blo i32 little endian
+                }
+                res.extend(vec![0x09, 4]); // srn 4
+                vec.extend(res);
+            }
+            _ => {}
+        }
         vec.extend(assemble_awatism(&instruction));
     }
 
@@ -197,10 +235,13 @@ pub fn object_to_awasm(vec: &Vec<u8>) -> String {
                 result += "trm";
             }
             // special awatism
-            Awatism::LblRel => {
-                result += "lbl";
+            Awatism::StrLbl(_str_label) => {
+                // only used to calculate position of relative jump from awasm label
             }
             Awatism::JmpRel => {
+                result += "jmp";
+            }
+            Awatism::JmpRelStr(_) => {
                 result += "jmp";
             }
         }

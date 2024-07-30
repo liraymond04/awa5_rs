@@ -123,6 +123,7 @@ pub mod awasm {
     pub fn parse_lines(
         macro_table: &mut MacroTable,
         already_included: &mut HashSet<String>,
+        label_included: &mut HashSet<String>,
         include_paths: &str,
         current_path: &str,
         lines: impl Iterator<Item = String>,
@@ -135,6 +136,18 @@ pub mod awasm {
         for line in lines {
             let line_without_comments = line.split(';').next().unwrap_or("");
             let trimmed = line_without_comments.trim();
+
+            if trimmed.ends_with(":") {
+                let label_name = &trimmed[..trimmed.len() - 1];
+                if !label_included.contains(label_name) {
+                    result.push(Awatism::StrLbl(label_name.to_string()));
+                    label_included.insert(label_name.to_string());
+                } else {
+                    panic!("Label '{}' redefined", label_name);
+                }
+                continue;
+            }
+
             let tokens: Vec<&str> = trimmed.splitn(2, char::is_whitespace).collect();
 
             if tokens.is_empty() || trimmed.starts_with(';') {
@@ -152,6 +165,7 @@ pub mod awasm {
                 result.extend(include_file(
                     macro_table,
                     already_included,
+                    label_included,
                     include_paths,
                     tokens[1],
                 ));
@@ -237,20 +251,19 @@ pub mod awasm {
             "mul" if tokens.len() == 1 => vec![Awatism::Mul],
             "div" if tokens.len() == 1 => vec![Awatism::Div],
             "cnt" if tokens.len() == 1 => vec![Awatism::Cnt],
-            "lbl" => {
-                if tokens.len() == 2 {
-                    let b: i32 = tokens[1].parse().ok().unwrap();
-                    vec![Awatism::Lbl(b as u8)]
-                } else if tokens.len() == 1 {
-                    vec![Awatism::LblRel]
-                } else {
-                    panic!("lbl instruction received more than 2 tokens")
-                }
+            "lbl" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                vec![Awatism::Lbl(b as u8)]
             }
             "jmp" => {
                 if tokens.len() == 2 {
-                    let b: i32 = tokens[1].parse().ok().unwrap();
-                    vec![Awatism::Jmp(b as u8)]
+                    let is_number = tokens[1].parse::<i32>().is_ok();
+                    if is_number {
+                        let b: i32 = tokens[1].parse().ok().unwrap();
+                        vec![Awatism::Jmp(b as u8)]
+                    } else {
+                        vec![Awatism::JmpRelStr(tokens[1].to_string())]
+                    }
                 } else if tokens.len() == 1 {
                     vec![Awatism::JmpRel]
                 } else {
@@ -290,6 +303,7 @@ pub mod awasm {
     fn include_file(
         macro_table: &mut MacroTable,
         already_included: &mut HashSet<String>,
+        label_included: &mut HashSet<String>,
         include_paths: &str,
         path_str: &str,
     ) -> Vec<Awatism> {
@@ -310,6 +324,7 @@ pub mod awasm {
             let instructions = parse_lines(
                 macro_table,
                 already_included,
+                label_included,
                 include_paths,
                 path,
                 lines.into_iter(),

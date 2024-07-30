@@ -90,9 +90,11 @@ fn main() {
 
                 let mut macro_table = parser::awasm::MacroTable::new();
                 let mut already_included: HashSet<String> = HashSet::new();
+                let mut label_included: HashSet<String> = HashSet::new();
                 let instructions = parser::awasm::parse_lines(
                     &mut macro_table,
                     &mut already_included,
+                    &mut label_included,
                     include_paths,
                     "",
                     lines,
@@ -215,9 +217,11 @@ fn main() {
 
             let mut macro_table = parser::awasm::MacroTable::new();
             let mut already_included: HashSet<String> = HashSet::new();
+            let mut label_included: HashSet<String> = HashSet::new();
             let instructions = parser::awasm::parse_lines(
                 &mut macro_table,
                 &mut already_included,
+                &mut label_included,
                 include_paths,
                 "",
                 lines,
