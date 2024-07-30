@@ -335,6 +335,13 @@ pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
             Awatism::Trm => {
                 break;
             }
+            // special awatism
+            Awatism::LblRel => {
+                println!("hi");
+            }
+            Awatism::JmpRel => {
+                println!("ho");
+            }
         }
 
         index += 1;

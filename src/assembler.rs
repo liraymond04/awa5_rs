@@ -94,6 +94,19 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
             let bytes = vec![0x1F, 0x00];
             bytes
         }
+        // special awatism
+        Awatism::LblRel => {
+            // 00010000 - original lbl
+            // 10010000 - add bit to u8 to mark as relative jmp
+            let bytes = vec![0x90, 0x00];
+            bytes
+        }
+        Awatism::JmpRel => {
+            // 00010001 - original lbl
+            // 10010001 - add bit to u8 to mark as relative jmp
+            let bytes = vec![0x91, 0x00];
+            bytes
+        }
     }
 }
 
@@ -183,6 +196,13 @@ pub fn object_to_awasm(vec: &Vec<u8>) -> String {
             Awatism::Trm => {
                 result += "trm";
             }
+            // special awatism
+            Awatism::LblRel => {
+                result += "lbl";
+            }
+            Awatism::JmpRel => {
+                result += "jmp";
+            }
         }
         result += "\n";
         i += 2;
@@ -201,6 +221,10 @@ pub fn object_to_awa(vec: &Vec<u8>) -> String {
 
         if Awatism::needs_args(op) {
             result += &to_mapping_arg(arg, Awatism::arg_bits(op));
+        }
+
+        if Awatism::is_relative(op) {
+            result += " wa wa";
         }
 
         i += 2;
