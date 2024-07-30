@@ -20,7 +20,7 @@ blo 0 ;x
 blo 1 ;y
 
 ;start loop
-lbl 30
+main_prgm_loop:
 
 !str "BeginDrawing"
 srn 1
@@ -55,17 +55,17 @@ lib
 
 blo 0
 eql
-jmp 9
+jro is_esc_key_down_else
 
 ;player pressed key
 
 pop
 pop
 
-jmp 31
+jro main_prgm_end
 
 ; else
-lbl 9
+is_esc_key_down_else:
 
 pop
 pop
@@ -80,7 +80,7 @@ lib
 
 blo 0
 eql
-jmp 1
+jro is_d_key_down_else
 
 ;player pressed key
 
@@ -92,15 +92,15 @@ blo 10
 4dd
 sbm 0
 
-jmp 2
+jro is_d_key_down_end
 
 ; else
-lbl 1
+is_d_key_down_else:
 
 pop
 pop
 
-lbl 2
+is_d_key_down_end:
 ; ----- D down
 
 ; ----- A down
@@ -112,7 +112,7 @@ lib
 
 blo 0
 eql
-jmp 3
+jro is_a_key_down_else
 
 ;player pressed key
 
@@ -125,15 +125,15 @@ sbm 1
 sub
 sbm 0
 
-jmp 4
+jro is_a_key_down_end
 
 ; else
-lbl 3
+is_a_key_down_else:
 
 pop
 pop
 
-lbl 4
+is_a_key_down_end:
 ; ----- A down
 
 ; ----- S down
@@ -145,7 +145,7 @@ lib
 
 blo 0
 eql
-jmp 5
+jro is_s_key_down_else
 
 ;player pressed key
 
@@ -157,15 +157,15 @@ sbm 0
 blo 10
 4dd
 
-jmp 6
+jro is_s_key_down_end
 
 ; else
-lbl 5
+is_s_key_down_else:
 
 pop
 pop
 
-lbl 6
+is_s_key_down_end:
 ; ----- S down
 
 ; ----- W down
@@ -177,7 +177,7 @@ lib
 
 blo 0
 eql
-jmp 7
+jro is_w_key_down_else
 
 ;player pressed key
 
@@ -190,15 +190,15 @@ blo 10
 sbm 1
 sub
 
-jmp 8
+jro is_w_key_down_end
 
 ; else
-lbl 7
+is_w_key_down_else:
 
 pop
 pop
 
-lbl 8
+is_w_key_down_end:
 ; ----- W down
 
 ; dup xy
@@ -240,9 +240,9 @@ prn
 srn 1
 lib
 
-jmp 30
+jro main_prgm_loop
 
-lbl 31
+main_prgm_end:
 
 ;end prgm
 trm

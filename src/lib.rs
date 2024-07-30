@@ -72,9 +72,9 @@ impl Awatism {
             0x15 => None, // syscall
             0x16 => None, // double_pop
             0x17 => Some(Awatism::Lib),
+            0x18 => Some(Awatism::JmpRel),
             0x1F => Some(Awatism::Trm),
             // special awatism
-            0x91 => Some(Awatism::JmpRel),
             _ => None,
         }
     }
@@ -88,10 +88,6 @@ impl Awatism {
             0x11 => true,
             _ => false,
         }
-    }
-
-    pub fn is_relative(value: u8) -> bool {
-        return (value >> 7) == 1;
     }
 
     pub fn arg_bits(value: u8) -> usize {

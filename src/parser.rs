@@ -255,7 +255,11 @@ pub mod awasm {
                 let b: i32 = tokens[1].parse().ok().unwrap();
                 vec![Awatism::Lbl(b as u8)]
             }
-            "jmp" => {
+            "jmp" if tokens.len() == 2 => {
+                let b: i32 = tokens[1].parse().ok().unwrap();
+                vec![Awatism::Jmp(b as u8)]
+            }
+            "jro" => {
                 if tokens.len() == 2 {
                     let is_number = tokens[1].parse::<i32>().is_ok();
                     if is_number {
@@ -267,7 +271,7 @@ pub mod awasm {
                 } else if tokens.len() == 1 {
                     vec![Awatism::JmpRel]
                 } else {
-                    panic!("jmp instruction received more than 2 tokens")
+                    panic!("jro instruction received more than 2 tokens")
                 }
             }
             "eql" if tokens.len() == 1 => vec![Awatism::Eql],
@@ -485,8 +489,6 @@ pub mod awatalk {
 
         let mapping = [(" awa", '0'), ("wa", '1')];
 
-        let relative = " wa wa";
-
         let mut binary_str = String::new();
         let mut found_op = false;
         let mut num_bits = 0;
@@ -521,16 +523,6 @@ pub mod awatalk {
                         opcode = u8::from_str_radix(op_str, 2).unwrap();
                         op_index = current_index;
                         found_op = true;
-                        // using relative jump off abyss
-                        if opcode == 0x10 || opcode == 0x11 {
-                            if remaining.starts_with(relative) {
-                                instructions.push(Instruction {
-                                    awatism: Awatism::from_u8(opcode + 128, 0x00).unwrap(),
-                                });
-                                remaining = &remaining[relative.len()..];
-                                found_op = false;
-                            }
-                        }
                     }
 
                     // set start of arg check

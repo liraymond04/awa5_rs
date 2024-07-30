@@ -279,7 +279,19 @@ pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
                 {
                     // execute next line
                 } else {
-                    index += 1;
+                    if index + 6 < instructions.len() {
+                        match Awatism::from_u8(instructions[index + 6].op, 0x00).unwrap() {
+                            Awatism::JmpRel => {
+                                // treat a relative jump as single instruction
+                                index += 6;
+                            }
+                            _ => {
+                                index += 1;
+                            }
+                        }
+                    } else {
+                        index += 1;
+                    }
                 }
             }
             Awatism::Lss => {
@@ -343,12 +355,12 @@ pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
                 // only used to calculate position of relative jump from awasm label
             }
             Awatism::JmpRel => {
-                let top = bubble_abyss.top().unwrap();
+                let top = bubble_abyss.pop().unwrap();
 
                 // is i32 if is double
                 match top {
                     Bubble::Simple(val) => {
-                        index = (index as i32 + *val) as usize;
+                        index = (index as i32 + val) as usize;
                     }
                     Bubble::Double(bubbles) => {
                         let mut val = vec![];
