@@ -1,15 +1,27 @@
 use core::panic;
 use std::{collections::HashMap, fs, path::PathBuf, ptr};
 
+#[cfg(not(target_arch = "wasm32"))]
 use libloading::{Library, Symbol};
 
 use crate::{interpreter::Bubble, AWA_SCII};
 
+#[cfg(target_arch = "wasm32")]
+use crate::awa5_raylib;
+
 #[cfg(target_os = "windows")]
 const LIB_EXTENSION: &str = "dll";
 
-#[cfg(not(target_os = "windows"))]
+#[cfg(target_os = "linux")]
+#[cfg(not(target_arch = "wasm32"))]
 const LIB_EXTENSION: &str = "so";
+
+#[cfg(target_os = "macos")]
+#[cfg(not(target_arch = "wasm32"))]
+const LIB_EXTENSION: &str = "dylib";
+
+#[cfg(target_arch = "wasm32")]
+const LIB_EXTENSION: &str = "wasm";
 
 pub fn parse_fn_name(data: &[u8]) -> String {
     String::from_utf8(data.to_vec()).unwrap()
@@ -91,10 +103,12 @@ pub fn get_shared_library_paths(lib_dirs: &[&str]) -> Vec<String> {
     lib_paths
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
     let mut libs = HashMap::new();
 
     for path in lib_paths {
+        println!("{:#?}", path);
         let lib = unsafe { Library::new(path).unwrap() };
         libs.insert(path.to_string(), lib);
     }
@@ -102,6 +116,34 @@ pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
     libs
 }
 
+#[cfg(target_arch = "wasm32")]
+pub type LibFnWithArgs = unsafe extern "C" fn(*const u8, *mut *mut u8, *mut usize);
+#[cfg(target_arch = "wasm32")]
+pub type LibFnNoArgs = unsafe extern "C" fn();
+
+#[cfg(target_arch = "wasm32")]
+pub enum LibFn {
+    WithArgs(LibFnWithArgs),
+    NoArgs(LibFnNoArgs),
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn load_libs(_lib_paths: &[&str]) -> HashMap<String, LibFn> {
+    let mut libs = HashMap::new();
+
+    libs.insert("initwindow".to_string(), LibFn::WithArgs(awa5_raylib::initwindow));
+    libs.insert("settargetfps".to_string(), LibFn::WithArgs(awa5_raylib::settargetfps));
+    libs.insert("clearbackground".to_string(), LibFn::WithArgs(awa5_raylib::clearbackground));
+    libs.insert("drawtext".to_string(), LibFn::WithArgs(awa5_raylib::drawtext));
+    libs.insert("iskeydown".to_string(), LibFn::WithArgs(awa5_raylib::iskeydown));
+    libs.insert("drawcircle".to_string(), LibFn::WithArgs(awa5_raylib::drawcircle));
+    libs.insert("BeginDrawing".to_string(), LibFn::NoArgs(awa5_raylib::BeginDrawing));
+    libs.insert("EndDrawing".to_string(), LibFn::NoArgs(awa5_raylib::EndDrawing));
+
+    libs
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 pub fn call_lib_fn(libs: &HashMap<String, Library>, fn_name: &str, args: Vec<u8>) -> Vec<u8> {
     let mut buffer: *mut u8 = ptr::null_mut();
     let mut buffer_len: usize = 0;
@@ -123,4 +165,33 @@ pub fn call_lib_fn(libs: &HashMap<String, Library>, fn_name: &str, args: Vec<u8>
     }
 
     panic!("Function not found: {}", fn_name);
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn call_lib_fn(libs: &HashMap<String, LibFn>, fn_name: &str, args: Vec<u8>) -> Vec<u8> {
+    match libs.get(fn_name) {
+        Some(LibFn::WithArgs(lib_fn)) => {
+            let mut buffer: *mut u8 = ptr::null_mut();
+            let mut buffer_len: usize = 0;
+
+            unsafe {
+                lib_fn(args.as_ptr(), &mut buffer, &mut buffer_len);
+
+                if !buffer.is_null() {
+                    return Vec::from_raw_parts(buffer, buffer_len, buffer_len);
+                }
+                return vec![];
+            }
+        }
+        Some(LibFn::NoArgs(lib_fn)) => {
+            unsafe {
+                lib_fn();
+            }
+            Vec::new()
+        }
+        None => {
+            eprintln!("Function not found in library");
+            Vec::new()
+        }
+    }
 }

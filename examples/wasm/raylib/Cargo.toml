@@ -1,0 +1,12 @@
+[package]
+name = "awa5_rs-wasm-raylib"
+version = "0.1.0"
+edition = "2021"
+authors = ["Raymond Li <li.raymond04@gmail.com>"]
+publish = false
+
+[dependencies]
+awa5_rs = { path = "../../../" }
+
+[build-dependencies]
+# gate_build = { path = "../gate_build" }

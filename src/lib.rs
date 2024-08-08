@@ -3,6 +3,9 @@ pub mod dynlib;
 pub mod interpreter;
 pub mod parser;
 
+#[cfg(target_arch = "wasm32")]
+mod awa5_raylib;
+
 pub use assembler::*;
 pub use dynlib::*;
 pub use interpreter::*;
