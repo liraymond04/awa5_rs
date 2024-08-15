@@ -3,8 +3,8 @@
 ; example raylib 3d program using awa5_raylib bindings
 
 !str "initwindow"
-!_i32 800
-!_i32 450
+!_i32 1600
+!_i32 900
 !_str "AWA5.0 Raylib 3D"
 srn 3
 srn 2
@@ -18,7 +18,7 @@ lib
 
 !str "setcameraposition"
 !_f32 0.0; camera position x
-!_f32 10.0; camera position y
+!_f32 2.0; camera position y
 !_f32 10.0; camera position z
 srn 3
 srn 2
@@ -52,8 +52,44 @@ srn 1
 srn 2
 lib
 
+!str "loadmodel"
+!_i32 0; model_id
+!_str "assets/jorb.obj"
+srn 2
+srn 2
+lib
+
+!str "loadtexture"
+!_i32 0; texture_id
+!_str "assets/jellycurse.png"
+srn 2
+srn 2
+lib
+
+!str "setmaterialtexture"
+!_i32 0
+!_i32 0
+!_i32 0
+!_i32 0
+srn 4
+srn 2
+lib
+
+!f32 0
+
 ;start loop
 main_prgm_loop:
+
+blo 0
+sbm 0
+srn 2
+!str "addfloat"
+sbm 1
+!_f32 1
+srn 2
+srn 2
+lib
+srn 4; wrap result f32
 
 !str "BeginDrawing"
 srn 1
@@ -71,31 +107,34 @@ lib
 srn 1
 lib
 
-!str "drawcube"
-!_f32 0.0
-!_f32 0.0
-!_f32 0.0
-!_f32 2.0
-!_f32 2.0
-!_f32 2.0
-!_i32 255
+dpl
+!str "drawmodelex"
+sbm 1
 !_i32 0
-!_i32 0
-srn 9
+sbm 1
+!_f32 0.0; position
+sbm 1
+!_f32 0.0
+sbm 1
+!_f32 0.0
+sbm 1
+!_f32 0.0; rotation axis
+sbm 1
+!_f32 1.0
+sbm 1
+!_f32 0.0
+sbm 1
+blo 0
+sbm 1
 srn 2
-lib
-
-!str "drawcubewires"
-!_f32 0.0
-!_f32 0.0
-!_f32 0.0
-!_f32 2.0
-!_f32 2.0
-!_f32 2.0
-!_i32 190
-!_i32 33
-!_i32 55
-srn 9
+;!_f32 1.0; rotation angle
+!_f32 3.0; scale
+!_f32 3.0
+!_f32 3.0
+!_i32 255; tint
+!_i32 255
+!_i32 255
+srn 14
 srn 2
 lib
 
