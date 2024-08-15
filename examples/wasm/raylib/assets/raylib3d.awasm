@@ -1,0 +1,198 @@
+; raylib3d.awasm
+;
+; example raylib 3d program using awa5_raylib bindings
+
+!str "initwindow"
+!_i32 1600
+!_i32 900
+!_str "AWA5.0 Raylib 3D"
+srn 3
+srn 2
+lib
+
+!str "settargetfps"
+!_i32 60
+srn 1
+srn 2
+lib
+
+!str "setcameraposition"
+!_f32 0.0; camera position x
+!_f32 2.0; camera position y
+!_f32 10.0; camera position z
+srn 3
+srn 2
+lib
+
+!str "setcameratarget"
+!_f32 0.0; camera target x
+!_f32 0.0; camera target y
+!_f32 0.0; camera target z
+srn 3
+srn 2
+lib
+
+!str "setcameraup"
+!_f32 0.0; camera up x
+!_f32 1.0; camera up y
+!_f32 0.0; camera up z
+srn 3
+srn 2
+lib
+
+!str "setcamerafovy"
+!_f32 45.0; camera fovy
+srn 1
+srn 2
+lib
+
+!str "setcameraprojection"
+!_i32 0; camera projection (perspective)
+srn 1
+srn 2
+lib
+
+!str "loadmodel"
+!_i32 0; model_id
+!_str "assets/jorb.obj"
+srn 2
+srn 2
+lib
+
+!str "loadtexture"
+!_i32 0; texture_id
+!_str "assets/jellycurse.png"
+srn 2
+srn 2
+lib
+
+!str "setmaterialtexture"
+!_i32 0
+!_i32 0
+!_i32 0
+!_i32 0
+srn 4
+srn 2
+lib
+
+!f32 0
+
+;start loop
+main_prgm_loop:
+
+blo 0
+sbm 0
+srn 2
+!str "addfloat"
+sbm 1
+!_f32 1
+srn 2
+srn 2
+lib
+srn 4; wrap result f32
+
+!str "BeginDrawing"
+srn 1
+lib
+
+!str "clearbackground"
+!_i32 0
+!_i32 0
+!_i32 0
+srn 3
+srn 2
+lib
+
+!str "beginmode3d"
+srn 1
+lib
+
+dpl
+!str "drawmodelex"
+sbm 1
+!_i32 0
+sbm 1
+!_f32 0.0; position
+sbm 1
+!_f32 0.0
+sbm 1
+!_f32 0.0
+sbm 1
+!_f32 0.0; rotation axis
+sbm 1
+!_f32 1.0
+sbm 1
+!_f32 0.0
+sbm 1
+blo 0
+sbm 1
+srn 2
+;!_f32 1.0; rotation angle
+!_f32 3.0; scale
+!_f32 3.0
+!_f32 3.0
+!_i32 255; tint
+!_i32 255
+!_i32 255
+srn 14
+srn 2
+lib
+
+!str "drawgrid"
+!_i32 10
+!_f32 1.0
+srn 2
+srn 2
+lib
+
+!str "EndMode3D"
+srn 1
+lib
+
+!str "drawtext"
+!_str "Welcome to the third dimension!"
+!_i32 10
+!_i32 40
+!_i32 20
+!_i32 200
+!_i32 200
+!_i32 200
+srn 7
+srn 2
+lib
+
+; ----- Esc down
+!str "iskeydown"
+!_i32 256
+srn 1
+srn 2
+lib
+
+blo 0
+eql
+jro is_esc_key_down_else
+
+;player pressed key
+
+pop
+pop
+
+jro main_prgm_end
+
+; else
+is_esc_key_down_else:
+
+pop
+pop
+; ----- Esc down
+
+!str "EndDrawing"
+srn 1
+lib
+
+jro main_prgm_loop
+
+main_prgm_end:
+
+;end prgm
+trm

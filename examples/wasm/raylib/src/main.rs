@@ -5,7 +5,7 @@ use awa5_rs::*;
 fn main() {
     let path = "/usr/local/lib;/assets";
     let include_paths = "/assets";
-    let lines = read_lines("/assets/raylib.awasm").unwrap();
+    let lines = read_lines("/assets/raylib3d.awasm").unwrap();
 
     let mut macro_table = parser::awasm::MacroTable::new();
     let mut already_included: HashSet<String> = HashSet::new();

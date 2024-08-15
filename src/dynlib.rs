@@ -137,8 +137,25 @@ pub fn load_libs(_lib_paths: &[&str]) -> HashMap<String, LibFn> {
     libs.insert("drawtext".to_string(), LibFn::WithArgs(awa5_raylib::drawtext));
     libs.insert("iskeydown".to_string(), LibFn::WithArgs(awa5_raylib::iskeydown));
     libs.insert("drawcircle".to_string(), LibFn::WithArgs(awa5_raylib::drawcircle));
+    libs.insert("setcameraposition".to_string(), LibFn::WithArgs(awa5_raylib::setcameraposition));
+    libs.insert("setcameratarget".to_string(), LibFn::WithArgs(awa5_raylib::setcameratarget));
+    libs.insert("setcameraup".to_string(), LibFn::WithArgs(awa5_raylib::setcameraup));
+    libs.insert("setcamerafovy".to_string(), LibFn::WithArgs(awa5_raylib::setcamerafovy));
+    libs.insert("setcameraprojection".to_string(), LibFn::WithArgs(awa5_raylib::setcameraprojection));
+    libs.insert("beginmode3d".to_string(), LibFn::WithArgs(awa5_raylib::beginmode3d));
+    libs.insert("drawcube".to_string(), LibFn::WithArgs(awa5_raylib::drawcube));
+    libs.insert("drawcubewires".to_string(), LibFn::WithArgs(awa5_raylib::drawcubewires));
+    libs.insert("drawgrid".to_string(), LibFn::WithArgs(awa5_raylib::drawgrid));
+    libs.insert("loadmodel".to_string(), LibFn::WithArgs(awa5_raylib::loadmodel));
+    libs.insert("unloadmodel".to_string(), LibFn::WithArgs(awa5_raylib::unloadmodel));
+    libs.insert("drawmodel".to_string(), LibFn::WithArgs(awa5_raylib::drawmodel));
+    libs.insert("drawmodelex".to_string(), LibFn::WithArgs(awa5_raylib::drawmodelex));
+    libs.insert("loadtexture".to_string(), LibFn::WithArgs(awa5_raylib::loadtexture));
+    libs.insert("setmaterialtexture".to_string(), LibFn::WithArgs(awa5_raylib::setmaterialtexture));
+    libs.insert("addfloat".to_string(), LibFn::WithArgs(awa5_raylib::addfloat));
     libs.insert("BeginDrawing".to_string(), LibFn::NoArgs(awa5_raylib::BeginDrawing));
     libs.insert("EndDrawing".to_string(), LibFn::NoArgs(awa5_raylib::EndDrawing));
+    libs.insert("EndMode3D".to_string(), LibFn::NoArgs(awa5_raylib::EndMode3D));
 
     libs
 }
