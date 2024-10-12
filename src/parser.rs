@@ -133,15 +133,38 @@ pub mod awasm {
         let mut define_str = String::new();
         let mut cur_macro = vec![];
 
+        let mut parent_label = String::new();
+        let mut parent_scope = HashSet::<String>::new();
+
         for line in lines {
             let line_without_comments = line.split(';').next().unwrap_or("");
             let trimmed = line_without_comments.trim();
 
             if trimmed.ends_with(":") {
                 let label_name = &trimmed[..trimmed.len() - 1];
+                // local label
+                if label_name.starts_with(".") {
+                    if parent_label.len() == 0 {
+                        panic!("Local label created without parent scope");
+                    }
+                    if !parent_scope.contains(label_name) {
+                        result.push(Awatism::StrLbl(parent_label.to_string() + label_name));
+                        parent_scope.insert(label_name.to_string());
+                    } else {
+                        panic!(
+                            "Label '{}' redefined in scope '{}'",
+                            label_name, parent_label
+                        );
+                    }
+                    continue;
+                }
+                // global label
                 if !label_included.contains(label_name) {
                     result.push(Awatism::StrLbl(label_name.to_string()));
                     label_included.insert(label_name.to_string());
+                    // reset labels in scope
+                    parent_label = label_name.to_string();
+                    parent_scope.clear();
                 } else {
                     panic!("Label '{}' redefined", label_name);
                 }

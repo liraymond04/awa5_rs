@@ -2,247 +2,216 @@
 ;
 ; example raylib program using awa5_raylib bindings
 
-!str "initwindow"
-!_i32 800
-!_i32 450
-!_str "AWA5.0 Raylib"
-srn 3
-srn 2
-lib
+main_prgm_init:
+        !str "initwindow"
+        !_i32 800
+        !_i32 450
+        !_str "AWA5.0 Raylib"
+        srn 3
+        srn 2
+        lib
 
-!str "settargetfps"
-!_i32 60
-srn 1
-srn 2
-lib
+        !str "settargetfps"
+        !_i32 60
+        srn 1
+        srn 2
+        lib
 
-blo 0 ;x
-blo 1 ;y
+        blo 0 ;x
+        blo 1 ;y
 
-;start loop
 main_prgm_loop:
 
-!str "BeginDrawing"
-srn 1
-lib
+        !str "BeginDrawing"
+        srn 1
+        lib
 
-!str "clearbackground"
-!_i32 0
-!_i32 0
-!_i32 0
-srn 3
-srn 2
-lib
+        !str "clearbackground"
+        !_i32 0
+        !_i32 0
+        !_i32 0
+        srn 3
+        srn 2
+        lib
 
-!str "drawtext"
-!_str "Congrats! You created your first window!"
-!_i32 190
-!_i32 200
-!_i32 20
-!_i32 200
-!_i32 200
-!_i32 200
-srn 7
-srn 2
-lib
+        !str "drawtext"
+        !_str "Congrats! You created your first window!"
+        !_i32 190
+        !_i32 200
+        !_i32 20
+        !_i32 200
+        !_i32 200
+        !_i32 200
+        srn 7
+        srn 2
+        lib
 
-; ----- Esc down
-!str "iskeydown"
-!_i32 256
-srn 1
-srn 2
-lib
+esc_key_input:
+        !str "iskeydown"
+        !_i32 256
+        srn 1
+        srn 2
+        lib
 
-blo 0
-eql
-jro is_esc_key_down_else
-
-;player pressed key
-
-pop
-pop
-
-jro main_prgm_end
-
-; else
-is_esc_key_down_else:
-
-pop
-pop
-; ----- Esc down
-
-; ----- D down
-!str "iskeydown"
-!_i32 68
-srn 1
-srn 2
-lib
-
-blo 0
-eql
-jro is_d_key_down_else
+        blo 0
+        eql
+        jro .else
 
 ;player pressed key
+        pop
+        pop
 
-pop
-pop
+        jro main_prgm_end
+.else:
+        pop
+        pop
 
-sbm 0
-blo 10
-4dd
-sbm 0
+d_key_input:
+        !str "iskeydown"
+        !_i32 68
+        srn 1
+        srn 2
+        lib
 
-jro is_d_key_down_end
-
-; else
-is_d_key_down_else:
-
-pop
-pop
-
-is_d_key_down_end:
-; ----- D down
-
-; ----- A down
-!str "iskeydown"
-!_i32 65
-srn 1
-srn 2
-lib
-
-blo 0
-eql
-jro is_a_key_down_else
+        blo 0
+        eql
+        jro .else
 
 ;player pressed key
+        pop
+        pop
 
-pop
-pop
+        sbm 0
+        blo 10
+        4dd
+        sbm 0
 
-sbm 0
-blo 10
-sbm 1
-sub
-sbm 0
+        jro .end
+.else:
+        pop
+        pop
+.end:
 
-jro is_a_key_down_end
+a_key_input:
+        !str "iskeydown"
+        !_i32 65
+        srn 1
+        srn 2
+        lib
 
-; else
-is_a_key_down_else:
-
-pop
-pop
-
-is_a_key_down_end:
-; ----- A down
-
-; ----- S down
-!str "iskeydown"
-!_i32 83
-srn 1
-srn 2
-lib
-
-blo 0
-eql
-jro is_s_key_down_else
+        blo 0
+        eql
+        jro .else
 
 ;player pressed key
+        pop
+        pop
 
-pop
-pop
+        sbm 0
+        blo 10
+        sbm 1
+        sub
+        sbm 0
 
-sbm 0
-sbm 0
-blo 10
-4dd
+        jro .end
+.else:
+        pop
+        pop
+.end:
 
-jro is_s_key_down_end
+s_key_input:
+        !str "iskeydown"
+        !_i32 83
+        srn 1
+        srn 2
+        lib
 
-; else
-is_s_key_down_else:
-
-pop
-pop
-
-is_s_key_down_end:
-; ----- S down
-
-; ----- W down
-!str "iskeydown"
-!_i32 87
-srn 1
-srn 2
-lib
-
-blo 0
-eql
-jro is_w_key_down_else
+        blo 0
+        eql
+        jro .else
 
 ;player pressed key
+        pop
+        pop
 
-pop
-pop
+        sbm 0
+        sbm 0
+        blo 10
+        4dd
 
-sbm 0
-sbm 0
-blo 10
-sbm 1
-sub
+        jro .end
+.else:
+        pop
+        pop
+.end:
 
-jro is_w_key_down_end
+w_key_input:
+        !str "iskeydown"
+        !_i32 87
+        srn 1
+        srn 2
+        lib
 
-; else
-is_w_key_down_else:
+        blo 0
+        eql
+        jro .else
 
-pop
-pop
+;player pressed key
+        pop
+        pop
 
-is_w_key_down_end:
-; ----- W down
+        sbm 0
+        sbm 0
+        blo 10
+        sbm 1
+        sub
 
-; dup xy
-sbm 0
-dpl
-sbm 0
-blo 5
-sbm 1
-srn 2
-sbm 1
-dpl
-blo 5
-sbm 1
-srn 2
-sbm 1
-sbm 2
+        jro .end
+.else:
+        pop
+        pop
+.end:
 
-!str "drawcircle"
-sbm 2
-!_f32 50.0
-!_i32 255
-!_i32 0
-!_i32 0
-srn 6
-srn 2
-lib
+        ; dup xy
+        sbm 0
+        dpl
+        sbm 0
+        blo 5
+        sbm 1
+        srn 2
+        sbm 1
+        dpl
+        blo 5
+        sbm 1
+        srn 2
+        sbm 1
+        sbm 2
 
-sbm 0
-dpl
-pr1
-sbm 0
-dpl
-pr1
+        !str "drawcircle"
+        sbm 2
+        !_f32 50.0
+        !_i32 255
+        !_i32 0
+        !_i32 0
+        srn 6
+        srn 2
+        lib
 
-blo 63
-prn
+        sbm 0
+        dpl
+        pr1
+        sbm 0
+        dpl
+        pr1
 
-!str "EndDrawing"
-srn 1
-lib
+        blo 63
+        prn
 
-jro main_prgm_loop
+        !str "EndDrawing"
+        srn 1
+        lib
+
+        jro main_prgm_loop
 
 main_prgm_end:
-
-;end prgm
-trm
+        trm

@@ -118,15 +118,21 @@ pub fn make_object_vec(instructions: &[Instruction]) -> Vec<u8> {
     let mut labels: HashMap<String, usize> = HashMap::new();
     let mut jumps: HashMap<String, usize> = HashMap::new();
 
+    let mut parent_label = String::new();
     let mut current: usize = 0;
     for instruction in instructions {
         match &instruction.awatism {
             Awatism::StrLbl(label) => {
+                parent_label = label.to_string();
                 labels.insert(label.to_string(), current);
             }
             Awatism::JmpRelStr(label) => {
                 current += 6;
-                jumps.insert(label.to_string(), current);
+                if label.contains(".") {
+                    jumps.insert(parent_label.to_string() + label, current);
+                } else {
+                    jumps.insert(label.to_string(), current);
+                }
             }
             _ => {
                 current += 1;
@@ -134,9 +140,22 @@ pub fn make_object_vec(instructions: &[Instruction]) -> Vec<u8> {
         }
     }
 
+    let mut tmp;
+
     for instruction in instructions {
         match &instruction.awatism {
-            Awatism::JmpRelStr(label) => {
+            Awatism::StrLbl(label) => {
+                if !label.contains(".") {
+                    parent_label = label.to_string();
+                }
+            }
+            Awatism::JmpRelStr(_label) => {
+                let mut label = _label;
+                if label.starts_with(".") {
+                    tmp = parent_label.clone();
+                    tmp = tmp + label;
+                    label = &tmp;
+                }
                 let mut res = Vec::new();
                 let label_pos = *labels.get(label).unwrap() as i32;
                 let current_pos = *jumps.get(label).unwrap() as i32;
@@ -236,7 +255,7 @@ pub fn object_to_awasm(vec: &Vec<u8>) -> String {
                 // only used to calculate position of relative jump from awasm label
             }
             Awatism::JmpRel => {
-                result += "jmp";
+                result += "jro";
             }
             Awatism::JmpRelStr(_) => {
                 result += "jro";
