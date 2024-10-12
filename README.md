@@ -46,6 +46,17 @@ $ cargo build
 $ ./target/debug/awa5_rs # you can also build and run with `cargo run`, and you can pass flags with `cargo run -- --help` for example
 ```
 
+### Web builds
+
+You need Emscripten or [emsdk](https://github.com/emscripten-core/emsdk) installed
+
+```bash
+$ cd examples/wasm/raylib
+$ cargo build --target wasm32-unknown-emscripten
+$ cd target/wasm32-unknown-emscripten/debug
+$ emrun index.html # opens the web build on localhost:6931, which can be opened in a browser
+```
+
 ## Usage
 
 ```
