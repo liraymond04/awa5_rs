@@ -108,7 +108,7 @@ pub fn load_libs(lib_paths: &[&str]) -> HashMap<String, Library> {
     let mut libs = HashMap::new();
 
     for path in lib_paths {
-        println!("{:#?}", path);
+        // println!("{:#?}", path);
         let lib = unsafe { Library::new(path).unwrap() };
         libs.insert(path.to_string(), lib);
     }

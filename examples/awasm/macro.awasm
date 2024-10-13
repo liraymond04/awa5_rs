@@ -1,13 +1,17 @@
+jro main
+
 !include <hello_world.awasm>
 
-!def foo(val, bar)
-blo $val
-$bar
-!end
+main:
+        !def foo(val, bar)
+        blo $val
+        $bar
+        !end
 
-!foo 1, prn
-!foo 2, prn
-!foo 3, prn
+        call func
+        !foo 1, prn
+        !foo 2, prn
+        !foo 3, prn
 
-blo 63
-prn
+        blo 63
+        prn

@@ -301,6 +301,21 @@ pub mod awasm {
             "lss" if tokens.len() == 1 => vec![Awatism::Lss],
             "gr8" if tokens.len() == 1 => vec![Awatism::Gr8],
             "lib" if tokens.len() == 1 => vec![Awatism::Lib],
+            "call" => {
+                if tokens.len() == 2 {
+                    let is_number = tokens[1].parse::<i32>().is_ok();
+                    if is_number {
+                        panic!("call instruction did not receive a string label");
+                    } else {
+                        vec![Awatism::Call(true, tokens[1].to_string())]
+                    }
+                } else if tokens.len() == 1 {
+                    vec![Awatism::Call(false, "".to_string())]
+                } else {
+                    panic!("call instruction received more than 2 tokens");
+                }
+            }
+            "ret" if tokens.len() == 1 => vec![Awatism::Ret],
             "trm" if tokens.len() == 1 => vec![Awatism::Trm],
             _ => vec![],
         };

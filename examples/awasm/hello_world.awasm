@@ -1,2 +1,7 @@
 !str a"Hello World!\n"
 prn
+
+func:
+        !str a"Hi from func!\n"
+        prn
+        ret

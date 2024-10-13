@@ -41,6 +41,8 @@ pub enum Awatism {
     Lss,
     Gr8,
     Lib,
+    Call(bool, String), // is_string, string
+    Ret,
     Trm,
     // special awatism
     StrLbl(String),
@@ -76,6 +78,8 @@ impl Awatism {
             0x16 => None, // double_pop
             0x17 => Some(Awatism::Lib),
             0x18 => Some(Awatism::JmpRel),
+            0x19 => Some(Awatism::Call(false, "".to_string())),
+            0x1A => Some(Awatism::Ret),
             0x1F => Some(Awatism::Trm),
             // special awatism
             _ => None,

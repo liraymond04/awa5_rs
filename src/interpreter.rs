@@ -344,6 +344,35 @@ pub fn interpet_object(object_vec: Vec<u8>, path: &str) {
                     }
                 }
             }
+            Awatism::Call(_, _) => {
+                let top = bubble_abyss.pop().unwrap();
+                match top {
+                    Bubble::Simple(_) => {
+                        panic!("Expected i32 double bubble");
+                    }
+                    Bubble::Double(bubbles) => {
+                        let mut val = vec![];
+                        for bubble in bubbles {
+                            val.push(bubble.get_val() as u8);
+                        }
+                        let val = i32::from_le_bytes(<[u8; 4]>::try_from(val).unwrap());
+                        bubble_abyss.push(Bubble::Simple(index as i32)); // push return position to abyss
+                        index = val as usize; // jump to call position
+                        continue;
+                    }
+                }
+            }
+            Awatism::Ret => {
+                let top = bubble_abyss.pop().unwrap();
+                match top {
+                    Bubble::Simple(val) => {
+                        index = val as usize;
+                    }
+                    Bubble::Double(_) => {
+                        panic!("Expected return value to be a simple bubble");
+                    }
+                }
+            }
             Awatism::Trm => {
                 break;
             }

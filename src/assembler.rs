@@ -92,6 +92,14 @@ pub fn assemble_awatism(instruction: &Instruction) -> Vec<u8> {
             let bytes = vec![0x17, 0x00];
             bytes
         }
+        Awatism::Call(_, _) => {
+            let bytes = vec![0x19, 0x00];
+            bytes
+        }
+        Awatism::Ret => {
+            let bytes = vec![0x1A, 0x00];
+            bytes
+        }
         Awatism::Trm => {
             let bytes = vec![0x1F, 0x00];
             bytes
@@ -134,6 +142,9 @@ pub fn make_object_vec(instructions: &[Instruction]) -> Vec<u8> {
                     jumps.insert(label.to_string(), current);
                 }
             }
+            Awatism::Call(_, _) => {
+                current += 6;
+            }
             _ => {
                 current += 1;
             }
@@ -165,6 +176,17 @@ pub fn make_object_vec(instructions: &[Instruction]) -> Vec<u8> {
                 }
                 res.extend(vec![0x09, 4]); // srn 4
                 vec.extend(res);
+            }
+            Awatism::Call(is_string, string) => {
+                if is_string.clone() {
+                    let mut res = Vec::new();
+                    let label_pos = *labels.get(string).unwrap() as i32;
+                    for byte in i32::to_le_bytes(label_pos) {
+                        res.extend(vec![0x05, byte]); // blo i32 little endian
+                    }
+                    res.extend(vec![0x09, 4]); // srn 4
+                    vec.extend(res);
+                }
             }
             _ => {}
         }
@@ -246,6 +268,12 @@ pub fn object_to_awasm(vec: &Vec<u8>) -> String {
             }
             Awatism::Lib => {
                 result += "lib";
+            }
+            Awatism::Call(_, _) => {
+                result += "call";
+            }
+            Awatism::Ret => {
+                result += "ret";
             }
             Awatism::Trm => {
                 result += "trm";
